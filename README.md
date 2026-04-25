@@ -160,6 +160,8 @@ JWT_SECRET=use_a_long_random_secret
 ALLOWED_ORIGINS=https://your-netlify-site.netlify.app
 ```
 
+If `ALLOWED_ORIGINS` is missing, the backend now temporarily allows all origins in production and logs a warning so the frontend can still connect while you finish setup.
+
 ## 🍃 MongoDB Atlas Setup
 
 Create a MongoDB Atlas cluster and use its connection string for `MONGODB_URI`.
@@ -178,6 +180,16 @@ For initial deployment, Atlas Network Access can temporarily allow:
 
 You can tighten it later if needed.
 
+## Seed Production Data
+
+If `/api/trucks` loads but returns an empty array, your Atlas database is connected but has no truck data yet.
+
+Run this from the `backend` folder with the same `MONGODB_URI` used on Render:
+
+```bash
+npm run seed
+```
+
 ## ✅ Recommended Deployment Order
 
 1. Create the MongoDB Atlas database.
@@ -195,6 +207,16 @@ You can tighten it later if needed.
 - Refresh cookies use production-safe settings automatically.
 - Render health checks can use `/health`.
 - Do not use local MongoDB credentials in production.
+
+## Deployment Troubleshooting
+
+If the truck finder shows `Error loading trucks` after deployment, check these in order:
+
+1. Open your Render backend URL at `/health`.
+2. Confirm Netlify `VITE_API_BASE_URL` points to `https://your-render-service.onrender.com/api`.
+3. Confirm Render `ALLOWED_ORIGINS` includes your exact Netlify domain without a trailing path.
+4. Confirm Render `MONGODB_URI` points to MongoDB Atlas and Atlas Network Access allows Render to connect.
+5. Confirm Atlas actually contains truck records; if not, run `npm run seed` inside `backend`.
 
 ## 📌 Current Status
 

@@ -2008,7 +2008,12 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
         const response = await truckAPI.searchTrucks(params);
         setListings(response.data);
       } catch (err) {
-        setError("Failed to load trucks");
+        const apiMessage = err.response?.data?.message;
+        const networkMessage =
+          err.code === "ERR_NETWORK"
+            ? "Cannot reach the backend. Check Render URL, CORS, and MongoDB connection."
+            : "";
+        setError(apiMessage || networkMessage || "Failed to load trucks");
         console.error("Error fetching trucks:", err);
       } finally {
         setLoading(false);
