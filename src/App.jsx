@@ -1425,16 +1425,18 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
 }
 
 function parseValue(value) {
-  if (value.includes('k+')) {
-    return { end: parseInt(value.replace('k+', '')) * 1000, suffix: 'k+' };
+  const normalizedValue = String(value || "").trim();
+
+  if (normalizedValue.includes('k+')) {
+    return { end: parseFloat(normalizedValue.replace('k+', '')) * 1000, suffix: 'k+' };
   }
-  if (value.includes('+')) {
-    return { end: parseInt(value.replace('+', '')), suffix: '+' };
+  if (normalizedValue.includes('+')) {
+    return { end: parseFloat(normalizedValue.replace('+', '')), suffix: '+' };
   }
-  if (value.includes('%')) {
-    return { end: parseFloat(value.replace('%', '')), suffix: '%' };
+  if (normalizedValue.includes('%')) {
+    return { end: parseFloat(normalizedValue.replace('%', '')), suffix: '%' };
   }
-  return { end: parseInt(value), suffix: '' };
+  return { end: parseFloat(normalizedValue) || 0, suffix: '' };
 }
 
 function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, currentUser }) {
@@ -1457,7 +1459,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           totalTrucks: 12000,
           totalBookings: 1500,
           totalUsers: 450,
-          averageRating: 10000
+          averageRating: 4.8
         });
       } catch (err) {
         console.error("Error fetching stats:", err);
@@ -1466,7 +1468,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           totalTrucks: 12000,
           totalBookings: 1500,
           totalUsers: 450,
-          averageRating: 10000
+          averageRating: 4.8
         });
       }
     };
@@ -1494,8 +1496,14 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
   const dynamicStats = [
     { value: `${stats.totalTrucks}+`, label: "verified transport partners onboarded" },
-    { value: `${stats.totalUsers}+`, label: "monthly delivery requests compared" },
-    { value: `${stats.averageRating}`, label: "average customer rating" },
+    { value: `${stats.totalBookings}+`, label: "bookings supported across active corridors" },
+    { value: `${stats.averageRating}`, label: "average partner rating" },
+  ];
+
+  const heroMetrics = [
+    { value: "24/7", label: "dispatch support for urgent and scheduled loads" },
+    { value: "36", label: "states and union territories covered" },
+    { value: "15 min", label: "target callback for high-intent shipment requests" },
   ];
 
   return (
@@ -1613,6 +1621,15 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               {t("TruckLink helps businesses and customers find the right truck faster with clear pricing, verified transport partners, and dedicated flows for urgent, scheduled, and repeat shipments.")}
             </p>
 
+            <div className="hero-metric-row" aria-label="Service snapshot">
+              {heroMetrics.map((metric) => (
+                <article key={metric.label} className="hero-metric-card">
+                  <strong>{metric.value}</strong>
+                  <span>{t(metric.label)}</span>
+                </article>
+              ))}
+            </div>
+
             <div className="hero-actions">
               <button
                 type="button"
@@ -1656,7 +1673,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           <aside className="quote-panel" aria-label="Platform summary">
             <div className="quote-header">
               <p>{t("Operations snapshot")}</p>
-              <span>{t("For shippers and fleet owners")}</span>
+              <span>{t("Built for shippers and fleet owners")}</span>
             </div>
 
             <div className="quote-route">
@@ -1669,6 +1686,11 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
                 <strong>{t("Delivery")}</strong>
                 <span>{t("Tracked journey")}</span>
               </div>
+            </div>
+
+            <div className="hero-panel-note">
+              <strong>{t("Faster freight decisions")}</strong>
+              <p>{t("See service types, trust signals, and booking paths in one place before moving into the full truck finder flow.")}</p>
             </div>
 
             <div className="quote-grid">
@@ -1873,12 +1895,9 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             </p>
           </div>
         </section>
-
-
         <section className="coverage-section" id="coverage">
-            </section>
           <div className="coverage-overview">
-            <div className="section-heading">
+            <div className="section-heading wide">
               <span className="badge neutral">{t("Coverage and network")}</span>
               <h3>{t("Customers should instantly see where the platform can move freight")}</h3>
               <p>
@@ -1896,13 +1915,45 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             </div>
           </div>
 
+          <div className="coverage-grid">
+            <article className="coverage-map-card">
+              <p className="booking-label">{t("High-demand corridors")}</p>
+              <h4>{t("Routes where fast matching matters most")}</h4>
+              <p className="coverage-note">
+                {t("These lanes often combine urgent demand, repeat booking behavior, and the strongest need for verified capacity visibility.")}
+              </p>
+              <div className="coverage-chip-list coverage-corridors">
+                {majorCorridors.map((corridor) => (
+                  <span key={corridor}>{t(corridor)}</span>
+                ))}
+              </div>
+            </article>
 
-
-          <div className="globe-section" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '40px 0' }}>
-            <AnimatedGlobe />
+            <article className="coverage-detail-card">
+              <p className="booking-label">{t("Shipment fit")}</p>
+              <h4>{t("Commercial use cases the network is built to support")}</h4>
+              <div className="coverage-signal-list">
+                <div className="coverage-signal-card">
+                  <strong>{t("Best for")}</strong>
+                  <span>{t("Urgent dispatches, planned lane movements, and repeat B2B transport needs.")}</span>
+                </div>
+                <div className="coverage-signal-card">
+                  <strong>{t("Industries")}</strong>
+                  <span>{t("Retail, manufacturing, food, pharma, e-commerce, and packaged goods supply chains.")}</span>
+                </div>
+              </div>
+              <ul className="coverage-industry-list">
+                {serviceIndustries.map((industry) => (
+                  <li key={industry}>{t(industry)}</li>
+                ))}
+              </ul>
+            </article>
           </div>
 
-
+          <div className="globe-section">
+            <AnimatedGlobe />
+          </div>
+        </section>
 
         <section className="trust-section" id="trust">
           <div className="section-heading">

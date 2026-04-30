@@ -472,9 +472,18 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding-bottom: 28px;
-  padding-top: 12px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
+  position: sticky;
+  top: 12px;
+  z-index: 30;
+  border: 1px solid var(--border-soft);
+  border-radius: 24px;
+  background: rgba(255, 250, 242, 0.72);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 40px rgba(17, 28, 47, 0.08);
 }
 
 .brand-block {
@@ -622,6 +631,24 @@ button {
   color: var(--teal);
 }
 
+.nav-link-button::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--teal), var(--amber));
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 180ms ease;
+}
+
+.nav-link-button:hover::after {
+  transform: scaleX(1);
+}
+
 .nav-dashboard {
   padding: 8px 16px;
   border-radius: 8px;
@@ -682,8 +709,16 @@ button {
   padding: 34px;
   border: 1px solid var(--border-soft);
   border-radius: 32px;
-  background: var(--panel-bg);
+  background:
+    radial-gradient(circle at top left, rgba(255, 159, 28, 0.1), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(22, 138, 173, 0.12), transparent 36%),
+    var(--panel-bg);
   box-shadow: var(--shadow);
+}
+
+.hero-copy {
+  display: grid;
+  align-content: start;
 }
 
 .badge {
@@ -720,6 +755,10 @@ button {
   background: rgba(255, 191, 105, 0.3);
 }
 
+:root[data-theme="dark"] .topbar {
+  background: rgba(10, 16, 26, 0.72);
+}
+
 .hero-copy h2 {
   font-size: clamp(2rem, 2.8vw + 1rem, 4.5rem);
   line-height: 1.02;
@@ -743,6 +782,35 @@ button {
 .hero-copy p {
   max-width: 58ch;
   margin: 20px 0 26px;
+}
+
+.hero-metric-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.hero-metric-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(22, 138, 173, 0.14);
+  background: rgba(255, 255, 255, 0.56);
+  box-shadow: 0 14px 30px rgba(17, 28, 47, 0.05);
+}
+
+.hero-metric-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+
+.hero-metric-card span {
+  color: var(--soft-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .hero-actions {
@@ -830,6 +898,14 @@ button {
   background: rgba(255, 255, 255, 0.04);
 }
 
+:root[data-theme="dark"] .hero-metric-card,
+:root[data-theme="dark"] .hero-panel-note,
+:root[data-theme="dark"] .tracking-support-list div,
+:root[data-theme="dark"] .contact-channel-card,
+:root[data-theme="dark"] .coverage-signal-card {
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .quote-panel,
 .feature-card,
 .step-card,
@@ -852,6 +928,9 @@ button {
 .quote-panel {
   padding: 22px;
   align-self: stretch;
+  background:
+    linear-gradient(160deg, rgba(11, 19, 32, 0.04), rgba(255, 159, 28, 0.06)),
+    var(--surface);
 }
 
 .quote-header {
@@ -873,6 +952,25 @@ button {
   align-items: center;
   gap: 12px;
   margin: 22px 0;
+}
+
+.hero-panel-note {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(22, 138, 173, 0.08);
+}
+
+.hero-panel-note strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.hero-panel-note p {
+  margin: 0;
+  color: var(--soft-muted);
+  line-height: 1.55;
 }
 
 .quote-route strong,
@@ -1007,6 +1105,10 @@ button {
 .highlight-card h3 {
   font-size: clamp(1.7rem, 1.2vw + 1.1rem, 2.8rem);
   max-width: 15ch;
+}
+
+.section-heading.wide h3 {
+  max-width: 18ch;
 }
 
 .feature-grid,
@@ -1413,6 +1515,39 @@ button {
   margin: 10px 0 0;
   color: var(--ink);
   font-size: 1.35rem;
+}
+
+.coverage-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.coverage-corridors span {
+  background: linear-gradient(135deg, rgba(255, 159, 28, 0.18), rgba(22, 138, 173, 0.12));
+}
+
+.coverage-signal-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.coverage-signal-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(22, 138, 173, 0.07);
+}
+
+.coverage-signal-card strong {
+  color: var(--ink);
+}
+
+.coverage-signal-card span {
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .coverage-chip-list {
@@ -3196,6 +3331,7 @@ button {
 
   .topbar {
     display: grid;
+    position: static;
   }
 
   .stats-band,
@@ -3206,6 +3342,7 @@ button {
   .steps-grid,
   .testimonial-grid,
   .booking-options-grid,
+  .hero-metric-row,
   .hero-essentials,
   .coverage-stat-grid,
   .industries-grid,
@@ -3263,6 +3400,15 @@ button {
 
   .hero-copy h2 {
     max-width: none;
+  }
+
+  .topbar {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .hero-metric-card {
+    padding: 14px 16px;
   }
 
   .quote-grid {
