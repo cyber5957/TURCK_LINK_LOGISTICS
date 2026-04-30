@@ -46,6 +46,53 @@
     0 24px 58px rgba(11, 19, 32, 0.12);
 }
 
+.animated-india-map__header {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.animated-india-map__eyebrow {
+  margin: 0 0 6px;
+  color: #116c88;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.animated-india-map__header h5 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.25rem;
+}
+
+.animated-india-map__legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(22, 138, 173, 0.08);
+  color: var(--soft-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff9f1c, #168aad);
+  box-shadow: 0 0 0 5px rgba(255, 159, 28, 0.1);
+}
+
 .animated-india-map__grid {
   position: relative;
   z-index: 2;
@@ -77,8 +124,18 @@
   animation: regionRise 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.animated-india-map__region strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .animated-india-map__region span {
-  font-size: 0.88rem;
+  display: block;
+  margin-top: 4px;
+  color: var(--soft-muted);
+  font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -140,6 +197,39 @@
   animation: freightPulse 2.8s ease-in-out infinite;
 }
 
+.animated-india-map__route-list {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.animated-india-map__route-chip {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(22, 138, 173, 0.12);
+  box-shadow: 0 10px 22px rgba(17, 28, 47, 0.05);
+}
+
+.animated-india-map__route-chip strong {
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.animated-india-map__route-chip span {
+  color: #116c88;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .pulse-delhi {
   top: 19%;
   left: 34%;
@@ -183,6 +273,16 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
 }
 
+:root[data-theme="dark"] .animated-india-map__legend,
+:root[data-theme="dark"] .animated-india-map__route-chip {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="dark"] .animated-india-map__eyebrow,
+:root[data-theme="dark"] .animated-india-map__route-chip span {
+  color: #72d2e8;
+}
+
 @media (max-width: 600px) {
   .globe-section > div {
     width: 100%;
@@ -211,8 +311,25 @@
       "rj rj rj";
   }
 
+  .animated-india-map__header {
+    display: grid;
+  }
+
+  .animated-india-map__legend {
+    white-space: normal;
+    width: fit-content;
+  }
+
+  .animated-india-map__route-list {
+    grid-template-columns: 1fr;
+  }
+
+  .animated-india-map__region strong {
+    font-size: 0.82rem;
+  }
+
   .animated-india-map__region span {
-    font-size: 0.78rem;
+    font-size: 0.7rem;
   }
 
   .animated-india-map__routes,

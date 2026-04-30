@@ -721,25 +721,48 @@ function ThemeToggle({ theme, onToggle }) {
 
 function AnimatedIndiaMap() {
   const mapRegions = [
-    { key: "north", label: "North Hub", style: { gridArea: "delhi" } },
-    { key: "west", label: "West Corridor", style: { gridArea: "mh" } },
-    { key: "central", label: "Central Belt", style: { gridArea: "up" } },
-    { key: "south", label: "South Network", style: { gridArea: "ka" } },
-    { key: "east", label: "Eastern Reach", style: { gridArea: "ts" } },
-    { key: "gateway", label: "Rajasthan Link", style: { gridArea: "rj" } },
-    { key: "punjab", label: "Punjab Gate", style: { gridArea: "pj" } },
+    { key: "north", label: "Delhi NCR", sublabel: "North dispatch hub", style: { gridArea: "delhi" } },
+    { key: "west", label: "Maharashtra", sublabel: "Mumbai and Pune lane", style: { gridArea: "mh" } },
+    { key: "central", label: "North Central", sublabel: "UP corridor reach", style: { gridArea: "up" } },
+    { key: "south", label: "Karnataka", sublabel: "Southern fleet network", style: { gridArea: "ka" } },
+    { key: "east", label: "Telangana", sublabel: "Hyderabad-linked reach", style: { gridArea: "ts" } },
+    { key: "gateway", label: "Rajasthan", sublabel: "Jaipur gateway lane", style: { gridArea: "rj" } },
+    { key: "punjab", label: "Punjab", sublabel: "Northern freight entry", style: { gridArea: "pj" } },
   ];
 
   const freightRoutes = [
-    { className: "india-freight-route route-delhi-jaipur", label: "Delhi to Jaipur" },
-    { className: "india-freight-route route-mumbai-pune", label: "Mumbai to Pune" },
-    { className: "india-freight-route route-hyderabad-vijayawada", label: "Hyderabad to Vijayawada" },
+    {
+      className: "india-freight-route route-delhi-jaipur",
+      label: "Delhi to Jaipur",
+      badge: "Fast lane",
+    },
+    {
+      className: "india-freight-route route-mumbai-pune",
+      label: "Mumbai to Pune",
+      badge: "High volume",
+    },
+    {
+      className: "india-freight-route route-hyderabad-vijayawada",
+      label: "Hyderabad to Vijayawada",
+      badge: "Repeat demand",
+    },
   ];
 
   return (
     <div className="animated-india-map" aria-hidden="true">
       <div className="animated-india-map__halo" />
       <div className="animated-india-map__card">
+        <div className="animated-india-map__header">
+          <div>
+            <p className="animated-india-map__eyebrow">Live coverage focus</p>
+            <h5>India freight lanes</h5>
+          </div>
+          <div className="animated-india-map__legend">
+            <span className="legend-dot" />
+            <span>Priority dispatch corridors</span>
+          </div>
+        </div>
+
         <div className="animated-india-map__grid">
           {mapRegions.map((region, index) => (
             <div
@@ -747,7 +770,8 @@ function AnimatedIndiaMap() {
               className="animated-india-map__region"
               style={{ ...region.style, animationDelay: `${index * 0.12}s` }}
             >
-              <span>{region.label}</span>
+              <strong>{region.label}</strong>
+              <span>{region.sublabel}</span>
             </div>
           ))}
         </div>
@@ -767,6 +791,15 @@ function AnimatedIndiaMap() {
           <span className="india-pulse pulse-pune" />
           <span className="india-pulse pulse-hyderabad" />
           <span className="india-pulse pulse-vijayawada" />
+        </div>
+
+        <div className="animated-india-map__route-list">
+          {freightRoutes.map((route) => (
+            <div key={route.label} className="animated-india-map__route-chip">
+              <strong>{route.label}</strong>
+              <span>{route.badge}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
