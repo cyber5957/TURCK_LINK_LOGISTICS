@@ -719,93 +719,6 @@ function ThemeToggle({ theme, onToggle }) {
   );
 }
 
-function AnimatedIndiaMap() {
-  const mapRegions = [
-    { key: "north", label: "Delhi NCR", sublabel: "North dispatch hub", style: { gridArea: "delhi" } },
-    { key: "west", label: "Maharashtra", sublabel: "Mumbai and Pune lane", style: { gridArea: "mh" } },
-    { key: "central", label: "North Central", sublabel: "UP corridor reach", style: { gridArea: "up" } },
-    { key: "south", label: "Karnataka", sublabel: "Southern fleet network", style: { gridArea: "ka" } },
-    { key: "east", label: "Telangana", sublabel: "Hyderabad-linked reach", style: { gridArea: "ts" } },
-    { key: "gateway", label: "Rajasthan", sublabel: "Jaipur gateway lane", style: { gridArea: "rj" } },
-    { key: "punjab", label: "Punjab", sublabel: "Northern freight entry", style: { gridArea: "pj" } },
-  ];
-
-  const freightRoutes = [
-    {
-      className: "india-freight-route route-delhi-jaipur",
-      label: "Delhi to Jaipur",
-      badge: "Fast lane",
-    },
-    {
-      className: "india-freight-route route-mumbai-pune",
-      label: "Mumbai to Pune",
-      badge: "High volume",
-    },
-    {
-      className: "india-freight-route route-hyderabad-vijayawada",
-      label: "Hyderabad to Vijayawada",
-      badge: "Repeat demand",
-    },
-  ];
-
-  return (
-    <div className="animated-india-map" aria-hidden="true">
-      <div className="animated-india-map__halo" />
-      <div className="animated-india-map__card">
-        <div className="animated-india-map__header">
-          <div>
-            <p className="animated-india-map__eyebrow">Live coverage focus</p>
-            <h5>India freight lanes</h5>
-          </div>
-          <div className="animated-india-map__legend">
-            <span className="legend-dot" />
-            <span>Priority dispatch corridors</span>
-          </div>
-        </div>
-
-        <div className="animated-india-map__grid">
-          {mapRegions.map((region, index) => (
-            <div
-              key={region.key}
-              className="animated-india-map__region"
-              style={{ ...region.style, animationDelay: `${index * 0.12}s` }}
-            >
-              <strong>{region.label}</strong>
-              <span>{region.sublabel}</span>
-            </div>
-          ))}
-        </div>
-        <div className="animated-india-map__routes">
-          {freightRoutes.map((route, index) => (
-            <div
-              key={route.label}
-              className={route.className}
-              style={{ animationDelay: `${index * 0.45}s` }}
-            />
-          ))}
-        </div>
-        <div className="animated-india-map__pulses">
-          <span className="india-pulse pulse-delhi" />
-          <span className="india-pulse pulse-jaipur" />
-          <span className="india-pulse pulse-mumbai" />
-          <span className="india-pulse pulse-pune" />
-          <span className="india-pulse pulse-hyderabad" />
-          <span className="india-pulse pulse-vijayawada" />
-        </div>
-
-        <div className="animated-india-map__route-list">
-          {freightRoutes.map((route) => (
-            <div key={route.label} className="animated-india-map__route-chip">
-              <strong>{route.label}</strong>
-              <span>{route.badge}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function HeroFreightScene() {
   return (
     <div className="hero-scene" aria-hidden="true">
@@ -826,34 +739,225 @@ function HeroFreightScene() {
   );
 }
 
-function SiteNav({ currentUser }) {
-  const navItems = [
-    { sectionId: "services", label: "Services" },
-    { sectionId: "security", label: "Security" },
-  ];
+function CoverageMapExplorer() {
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [stateQuery, setStateQuery] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
+  const [error, setError] = useState("");
+  const mapRef = useRef(null);
+  const leafletMapRef = useRef(null);
+  const stateMarkersRef = useRef([]);
+  const deferredStateQuery = useDeferredValue(stateQuery);
+  const deferredCityQuery = useDeferredValue(cityQuery);
+  const visibleStates = useMemo(
+    () => getStateSuggestions(deferredStateQuery),
+    [deferredStateQuery]
+  );
+  const visibleCities = useMemo(
+    () => getCitySuggestions(selectedState, deferredCityQuery),
+    [selectedState, deferredCityQuery]
+  );
+
+  function handleStateSelection(stateKey) {
+    setSelectedState(stateKey);
+    setSelectedCity("");
+    setStateQuery(stateKey);
+    setCityQuery("");
+    setError("");
+  }
+
+  function handleCitySelection(city) {
+    setSelectedCity(city);
+    setCityQuery(city);
+    setError("");
+  }
+
+  useEffect(() => {
+    let isMounted = true;
+    let mapInstance = null;
+
+    const loadMap = async () => {
+      if (!mapRef.current) {
+        return;
+      }
+
+      try {
+        const [{ default: L }] = await Promise.all([
+          import("leaflet"),
+          import("leaflet/dist/leaflet.css"),
+        ]);
+
+        if (!isMounted || !mapRef.current || mapRef.current._leaflet_id) {
+          return;
+        }
+
+        mapInstance = L.map(mapRef.current, {
+          zoomControl: false,
+          attributionControl: false,
+        }).setView([22.5937, 78.9629], 5);
+
+        leafletMapRef.current = mapInstance;
+
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(mapInstance);
+
+        stateMarkersRef.current = states.map((state) => {
+          const location = stateLocations[state.key];
+          const marker = L.circleMarker([location.lat, location.lng], {
+            radius: 6,
+            weight: 1.5,
+            color: "#0b3f56",
+            fillColor: "#ff9f1c",
+            fillOpacity: 0.82,
+          })
+            .addTo(mapInstance)
+            .bindTooltip(state.label, {
+              direction: "top",
+              offset: [0, -8],
+            });
+
+          marker.on("click", () => {
+            handleStateSelection(state.key);
+            marker.openTooltip();
+          });
+
+          return { key: state.key, marker, location };
+        });
+      } catch (loadError) {
+        console.error("Error loading coverage map:", loadError);
+        if (isMounted) {
+          setError("Map preview is unavailable right now. You can still choose a state below.");
+        }
+      }
+    };
+
+    loadMap();
+
+    return () => {
+      isMounted = false;
+      stateMarkersRef.current = [];
+      leafletMapRef.current = null;
+      mapInstance?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    stateMarkersRef.current.forEach(({ key, marker, location }) => {
+      const isActive = key === selectedState;
+
+      marker.setStyle({
+        radius: isActive ? 9 : 6,
+        color: isActive ? "#168aad" : "#0b3f56",
+        fillColor: isActive ? "#168aad" : "#ff9f1c",
+        fillOpacity: isActive ? 0.96 : 0.82,
+      });
+
+      if (isActive) {
+        marker.openTooltip();
+        leafletMapRef.current?.flyTo([location.lat, location.lng], 6, {
+          duration: 0.6,
+        });
+      }
+    });
+  }, [selectedState]);
+
+  function handleContinue() {
+    if (!selectedState || !selectedCity) {
+      setError("Please choose both a state and city to continue.");
+      return;
+    }
+
+    goToHash("/truck-finder", {
+      flow: "Scheduled booking",
+      state: selectedState,
+      city: selectedCity,
+    });
+  }
 
   return (
-    <nav className="topnav" aria-label="Primary">
-      {navItems.map((item) => (
-        <button
-          key={item.sectionId}
-          type="button"
-          className="nav-link-button"
-          onClick={() => goToSection(item.sectionId)}
-        >
-          {item.label}
+    <div className="coverage-map-shell map-selection-grid">
+      <article className="india-map-card coverage-interactive-card">
+        <div className="map-card-header">
+          <span className="badge warm">Live coverage focus</span>
+          <h4>India freight lanes</h4>
+        </div>
+        <div className="india-map-canvas coverage-map-canvas" ref={mapRef} />
+        <div className="map-hint">
+          <p>Pick a state on the map to preview supported cities and open the truck finder with that region preloaded.</p>
+        </div>
+        <div className="state-chip-row">
+          {visibleStates.map((state) => (
+            <button
+              key={state.key}
+              type="button"
+              className={`state-chip ${selectedState === state.key ? "active" : ""}`}
+              onClick={() => handleStateSelection(state.key)}
+            >
+              {state.label}
+            </button>
+          ))}
+        </div>
+      </article>
+
+      <aside className="city-panel coverage-city-panel">
+        <div className="panel-header">
+          <span className="badge neutral">Priority dispatch corridors</span>
+          <h4>{selectedState ? `Cities in ${selectedState}` : "Pick a state first"}</h4>
+        </div>
+
+        <p>
+          {selectedState
+            ? "Choose the city you want to start from. We will open the truck finder with route discovery ready for that region."
+            : "Use the map or state list to reveal the cities currently supported in this coverage view."}
+        </p>
+
+        <SearchableSelector
+          label="Search state"
+          placeholder="Type a state or union territory"
+          value={selectedState}
+          query={stateQuery}
+          onQueryChange={setStateQuery}
+          options={visibleStates.map((state) => state.key)}
+          onSelect={handleStateSelection}
+          emptyMessage="No matching state found."
+        />
+
+        <SearchableSelector
+          label="Search city"
+          placeholder={selectedState ? "Type a city" : "Select a state first"}
+          value={selectedCity}
+          query={cityQuery}
+          onQueryChange={setCityQuery}
+          options={visibleCities}
+          onSelect={handleCitySelection}
+          emptyMessage={selectedState ? "No matching city found." : "Choose a state to load cities."}
+        />
+
+        {selectedState && visibleCities.length > 0 && (
+          <div className="city-grid coverage-city-grid">
+            {visibleCities.map((city) => (
+              <button
+                key={city}
+                type="button"
+                className={`city-chip ${selectedCity === city ? "active" : ""}`}
+                onClick={() => handleCitySelection(city)}
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {error && <p className="field-error">{error}</p>}
+
+        <button type="button" className="btn btn-primary full-width" onClick={handleContinue}>
+          Open truck finder for this route
         </button>
-      ))}
-      {currentUser && (
-        <button
-          type="button"
-          className="nav-link-button dashboard-link"
-          onClick={() => goToHash(currentUser.role === 'owner' ? '/owner-dashboard' : '/customer-dashboard')}
-        >
-          My Dashboard
-        </button>
-      )}
-    </nav>
+      </aside>
+    </div>
   );
 }
 
@@ -2030,9 +2134,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             </article>
           </div>
 
-          <div className="globe-section">
-            <AnimatedIndiaMap />
-          </div>
+          <CoverageMapExplorer />
         </section>
 
         <section className="trust-section" id="trust">
