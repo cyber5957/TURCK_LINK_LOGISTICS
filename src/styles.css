@@ -394,6 +394,26 @@
     opacity: 1;
   }
 }
+
+@keyframes heroOrbFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.98);
+  }
+  50% {
+    transform: translate3d(0, 10px, 0) scale(1.04);
+  }
+}
+
+@keyframes heroTruckFloat {
+  0%,
+  100% {
+    transform: translateX(-50%) rotateX(14deg) rotateY(-16deg) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) rotateX(14deg) rotateY(-12deg) translateY(-6px);
+  }
+}
 :root {
   font-family: "Manrope", sans-serif;
   color: #1a2533;
@@ -1209,6 +1229,206 @@ button {
   line-height: 1.55;
 }
 
+.hero-scene {
+  position: relative;
+  margin-bottom: 18px;
+  min-height: 260px;
+  padding: 22px 18px 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(22, 138, 173, 0.12);
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 159, 28, 0.16), transparent 28%),
+    radial-gradient(circle at 78% 24%, rgba(22, 138, 173, 0.18), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(227, 238, 244, 0.68));
+  overflow: hidden;
+  perspective: 1200px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.hero-scene__aura,
+.hero-scene__floor,
+.hero-scene__lane,
+.hero-scene__truck,
+.hero-scene__stack,
+.hero-scene__stats {
+  position: absolute;
+}
+
+.hero-scene__aura {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  filter: blur(28px);
+  opacity: 0.72;
+  animation: heroOrbFloat 6.4s ease-in-out infinite;
+}
+
+.hero-scene__aura--amber {
+  top: -54px;
+  left: -36px;
+  background: rgba(255, 159, 28, 0.24);
+}
+
+.hero-scene__aura--teal {
+  right: -42px;
+  top: 18px;
+  background: rgba(22, 138, 173, 0.24);
+  animation-delay: -2.8s;
+}
+
+.hero-scene__floor {
+  left: 7%;
+  right: 7%;
+  bottom: 44px;
+  height: 86px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(11, 19, 32, 0.02), rgba(11, 19, 32, 0.14));
+  transform: rotateX(76deg);
+  transform-origin: center;
+}
+
+.hero-scene__lane {
+  bottom: 74px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(22, 138, 173, 0.9), rgba(255, 159, 28, 0.95), rgba(255, 255, 255, 0));
+  box-shadow: 0 0 18px rgba(22, 138, 173, 0.22);
+}
+
+.hero-scene__lane--one {
+  left: 18%;
+  width: 52%;
+  transform: rotate(-8deg);
+}
+
+.hero-scene__lane--two {
+  right: 16%;
+  width: 32%;
+  transform: rotate(7deg);
+}
+
+.hero-scene__truck {
+  left: 50%;
+  bottom: 78px;
+  width: 170px;
+  height: 82px;
+  transform: translateX(-50%) rotateX(14deg) rotateY(-16deg);
+  transform-style: preserve-3d;
+  animation: heroTruckFloat 5.8s ease-in-out infinite;
+}
+
+.hero-scene__truck-body {
+  position: absolute;
+  left: 34px;
+  bottom: 18px;
+  width: 110px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #168aad, #0b5d76);
+  box-shadow: 0 16px 24px rgba(11, 19, 32, 0.18);
+}
+
+.hero-scene__truck-cabin {
+  position: absolute;
+  left: 14px;
+  bottom: 18px;
+  width: 42px;
+  height: 30px;
+  border-radius: 10px 10px 8px 8px;
+  background: linear-gradient(135deg, #ffbf69, #ff9f1c);
+}
+
+.hero-scene__truck-glow {
+  position: absolute;
+  right: 14px;
+  bottom: 30px;
+  width: 44px;
+  height: 10px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 243, 196, 0.95), rgba(255, 243, 196, 0));
+  transform: rotateY(18deg);
+}
+
+.hero-scene__wheel {
+  position: absolute;
+  bottom: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #6f8192, #0b1320 62%);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.08);
+}
+
+.hero-scene__wheel--front {
+  left: 28px;
+}
+
+.hero-scene__wheel--rear {
+  left: 118px;
+}
+
+.hero-scene__stack {
+  width: 132px;
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(21, 38, 60, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 26px rgba(17, 28, 47, 0.08);
+  transform-style: preserve-3d;
+}
+
+.hero-scene__stack span,
+.hero-scene__stat-card span {
+  display: block;
+  color: var(--soft-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hero-scene__stack strong,
+.hero-scene__stat-card strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.hero-scene__stack--left {
+  left: 16px;
+  top: 22px;
+  transform: rotateY(18deg) rotateX(8deg);
+}
+
+.hero-scene__stack--right {
+  right: 14px;
+  top: 78px;
+  transform: rotateY(-18deg) rotateX(8deg);
+}
+
+.hero-scene__stats {
+  left: 18px;
+  right: 18px;
+  bottom: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hero-scene__stat-card {
+  padding: 12px 12px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(22, 138, 173, 0.1);
+  box-shadow: 0 10px 22px rgba(17, 28, 47, 0.06);
+}
+
+.hero-scene__stat-card strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.1rem;
+}
+
 .quote-route strong,
 .quote-grid strong,
 .feature-card h4,
@@ -1223,6 +1443,19 @@ button {
 .route-line {
   height: 2px;
   background: var(--quote-line);
+}
+
+:root[data-theme="dark"] .hero-scene {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 159, 28, 0.14), transparent 28%),
+    radial-gradient(circle at 78% 24%, rgba(22, 138, 173, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(17, 27, 41, 0.9), rgba(12, 19, 31, 0.9));
+}
+
+:root[data-theme="dark"] .hero-scene__stack,
+:root[data-theme="dark"] .hero-scene__stat-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .quote-grid {
@@ -3636,6 +3869,25 @@ button {
 
   .hero-copy h2 {
     max-width: none;
+  }
+
+  .hero-scene {
+    min-height: 300px;
+    padding: 18px 14px 14px;
+  }
+
+  .hero-scene__truck {
+    width: 138px;
+    bottom: 96px;
+  }
+
+  .hero-scene__stack {
+    width: 112px;
+    padding: 12px 12px 10px;
+  }
+
+  .hero-scene__stats {
+    grid-template-columns: 1fr;
   }
 
   .topbar {

@@ -806,6 +806,51 @@ function AnimatedIndiaMap() {
   );
 }
 
+function HeroFreightScene() {
+  const freightStats = [
+    { label: "Active lanes", value: "126" },
+    { label: "Fast dispatch", value: "24/7" },
+    { label: "Verified trucks", value: "12k+" },
+  ];
+
+  return (
+    <div className="hero-scene" aria-hidden="true">
+      <div className="hero-scene__aura hero-scene__aura--amber" />
+      <div className="hero-scene__aura hero-scene__aura--teal" />
+      <div className="hero-scene__floor" />
+      <div className="hero-scene__lane hero-scene__lane--one" />
+      <div className="hero-scene__lane hero-scene__lane--two" />
+
+      <div className="hero-scene__stack hero-scene__stack--left">
+        <span>North Hub</span>
+        <strong>Delhi to Jaipur</strong>
+      </div>
+
+      <div className="hero-scene__truck">
+        <div className="hero-scene__truck-body" />
+        <div className="hero-scene__truck-cabin" />
+        <div className="hero-scene__truck-glow" />
+        <span className="hero-scene__wheel hero-scene__wheel--front" />
+        <span className="hero-scene__wheel hero-scene__wheel--rear" />
+      </div>
+
+      <div className="hero-scene__stack hero-scene__stack--right">
+        <span>South Lane</span>
+        <strong>Hyderabad to Vijayawada</strong>
+      </div>
+
+      <div className="hero-scene__stats">
+        {freightStats.map((item) => (
+          <div key={item.label} className="hero-scene__stat-card">
+            <strong>{item.value}</strong>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SiteNav({ currentUser }) {
   const navItems = [
     { sectionId: "services", label: "Services" },
@@ -1750,6 +1795,8 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               <strong>{t("Faster freight decisions")}</strong>
               <p>{t("See service types, trust signals, and booking paths in one place before moving into the full truck finder flow.")}</p>
             </div>
+
+            <HeroFreightScene />
 
             <div className="quote-grid">
               <div>
