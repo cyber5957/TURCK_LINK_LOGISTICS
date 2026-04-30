@@ -209,7 +209,7 @@
 .animated-india-map__route-chip {
   display: grid;
   gap: 4px;
-  padding: 12px 14px;
+  padding: 11px 13px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(22, 138, 173, 0.12);
@@ -224,7 +224,7 @@
 
 .animated-india-map__route-chip span {
   color: #116c88;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -411,7 +411,29 @@
     transform: translateX(-50%) rotateX(14deg) rotateY(-16deg) translateY(0);
   }
   50% {
-    transform: translateX(-50%) rotateX(14deg) rotateY(-12deg) translateY(-6px);
+    transform: translateX(-50%) rotateX(14deg) rotateY(-13deg) translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-india-map__halo,
+  .animated-india-map__region,
+  .india-freight-route::after,
+  .india-pulse,
+  .hero-scene__aura,
+  .hero-scene__truck,
+  .stat-card,
+  .stat-card::before,
+  .stat-number,
+  .stats-band span,
+  .stats-band strong {
+    animation: none !important;
+  }
+
+  .hero-scene__truck,
+  .hero-scene__badge--left,
+  .hero-scene__badge--right {
+    transform: none;
   }
 }
 :root {
@@ -1232,7 +1254,7 @@ button {
 .hero-scene {
   position: relative;
   margin-bottom: 18px;
-  min-height: 260px;
+  min-height: 244px;
   padding: 22px 18px 18px;
   border-radius: 24px;
   border: 1px solid rgba(22, 138, 173, 0.12);
@@ -1246,11 +1268,12 @@ button {
 }
 
 .hero-scene__aura,
+.hero-scene__status-pill,
 .hero-scene__floor,
 .hero-scene__lane,
 .hero-scene__truck,
-.hero-scene__stack,
-.hero-scene__stats {
+.hero-scene__badge,
+.hero-scene__control-bar {
   position: absolute;
 }
 
@@ -1274,6 +1297,35 @@ button {
   top: 18px;
   background: rgba(22, 138, 173, 0.24);
   animation-delay: -2.8s;
+}
+
+.hero-scene__status-pill {
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 2px;
+  min-width: 148px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(22, 138, 173, 0.12);
+  box-shadow: 0 12px 24px rgba(17, 28, 47, 0.08);
+  text-align: center;
+}
+
+.hero-scene__status-pill span {
+  color: var(--soft-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-scene__status-pill strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.2;
 }
 
 .hero-scene__floor {
@@ -1309,8 +1361,8 @@ button {
 
 .hero-scene__truck {
   left: 50%;
-  bottom: 78px;
-  width: 170px;
+  bottom: 84px;
+  width: 164px;
   height: 82px;
   transform: translateX(-50%) rotateX(14deg) rotateY(-16deg);
   transform-style: preserve-3d;
@@ -1367,9 +1419,9 @@ button {
   left: 118px;
 }
 
-.hero-scene__stack {
-  width: 132px;
-  padding: 14px 14px 12px;
+.hero-scene__badge {
+  width: 128px;
+  padding: 12px 13px 10px;
   border-radius: 18px;
   border: 1px solid rgba(21, 38, 60, 0.08);
   background: rgba(255, 255, 255, 0.72);
@@ -1377,8 +1429,9 @@ button {
   transform-style: preserve-3d;
 }
 
-.hero-scene__stack span,
-.hero-scene__stat-card span {
+.hero-scene__badge span,
+.hero-scene__signal-card span,
+.hero-scene__command-card span {
   display: block;
   color: var(--soft-muted);
   font-size: 0.72rem;
@@ -1387,27 +1440,28 @@ button {
   text-transform: uppercase;
 }
 
-.hero-scene__stack strong,
-.hero-scene__stat-card strong {
+.hero-scene__badge strong,
+.hero-scene__signal-card strong,
+.hero-scene__command-card strong {
   display: block;
   margin-top: 6px;
   color: var(--ink);
   line-height: 1.25;
 }
 
-.hero-scene__stack--left {
+.hero-scene__badge--left {
   left: 16px;
-  top: 22px;
-  transform: rotateY(18deg) rotateX(8deg);
+  top: 68px;
+  transform: rotateY(16deg) rotateX(8deg);
 }
 
-.hero-scene__stack--right {
+.hero-scene__badge--right {
   right: 14px;
-  top: 78px;
-  transform: rotateY(-18deg) rotateX(8deg);
+  top: 86px;
+  transform: rotateY(-16deg) rotateX(8deg);
 }
 
-.hero-scene__stats {
+.hero-scene__control-bar {
   left: 18px;
   right: 18px;
   bottom: 14px;
@@ -1416,7 +1470,8 @@ button {
   gap: 10px;
 }
 
-.hero-scene__stat-card {
+.hero-scene__signal-card,
+.hero-scene__command-card {
   padding: 12px 12px 10px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.62);
@@ -1424,9 +1479,14 @@ button {
   box-shadow: 0 10px 22px rgba(17, 28, 47, 0.06);
 }
 
-.hero-scene__stat-card strong {
+.hero-scene__signal-card strong,
+.hero-scene__command-card strong {
   font-family: "Space Grotesk", sans-serif;
-  font-size: 1.1rem;
+  font-size: 1rem;
+}
+
+.hero-scene__command-card {
+  background: linear-gradient(135deg, rgba(22, 138, 173, 0.14), rgba(255, 159, 28, 0.14));
 }
 
 .quote-route strong,
@@ -1452,8 +1512,10 @@ button {
     linear-gradient(180deg, rgba(17, 27, 41, 0.9), rgba(12, 19, 31, 0.9));
 }
 
-:root[data-theme="dark"] .hero-scene__stack,
-:root[data-theme="dark"] .hero-scene__stat-card {
+:root[data-theme="dark"] .hero-scene__status-pill,
+:root[data-theme="dark"] .hero-scene__badge,
+:root[data-theme="dark"] .hero-scene__signal-card,
+:root[data-theme="dark"] .hero-scene__command-card {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.08);
 }

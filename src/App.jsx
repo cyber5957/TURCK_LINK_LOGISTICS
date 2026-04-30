@@ -807,9 +807,8 @@ function AnimatedIndiaMap() {
 }
 
 function HeroFreightScene() {
-  const freightStats = [
+  const freightSignals = [
     { label: "Active lanes", value: "126" },
-    { label: "Fast dispatch", value: "24/7" },
     { label: "Verified trucks", value: "12k+" },
   ];
 
@@ -817,11 +816,15 @@ function HeroFreightScene() {
     <div className="hero-scene" aria-hidden="true">
       <div className="hero-scene__aura hero-scene__aura--amber" />
       <div className="hero-scene__aura hero-scene__aura--teal" />
+      <div className="hero-scene__status-pill">
+        <span>Dispatch command</span>
+        <strong>24/7 ready</strong>
+      </div>
       <div className="hero-scene__floor" />
       <div className="hero-scene__lane hero-scene__lane--one" />
       <div className="hero-scene__lane hero-scene__lane--two" />
 
-      <div className="hero-scene__stack hero-scene__stack--left">
+      <div className="hero-scene__badge hero-scene__badge--left">
         <span>North Hub</span>
         <strong>Delhi to Jaipur</strong>
       </div>
@@ -834,18 +837,22 @@ function HeroFreightScene() {
         <span className="hero-scene__wheel hero-scene__wheel--rear" />
       </div>
 
-      <div className="hero-scene__stack hero-scene__stack--right">
+      <div className="hero-scene__badge hero-scene__badge--right">
         <span>South Lane</span>
         <strong>Hyderabad to Vijayawada</strong>
       </div>
 
-      <div className="hero-scene__stats">
-        {freightStats.map((item) => (
-          <div key={item.label} className="hero-scene__stat-card">
+      <div className="hero-scene__control-bar">
+        {freightSignals.map((item) => (
+          <div key={item.label} className="hero-scene__signal-card">
             <strong>{item.value}</strong>
             <span>{item.label}</span>
           </div>
         ))}
+        <div className="hero-scene__command-card">
+          <span>Control</span>
+          <strong>Instant lane matching</strong>
+        </div>
       </div>
     </div>
   );
