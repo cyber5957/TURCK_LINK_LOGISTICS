@@ -14,6 +14,95 @@
   overflow: hidden;
 }
 
+.animated-globe {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  display: grid;
+  place-items: center;
+}
+
+.animated-globe__halo {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 159, 28, 0.28) 0%, rgba(22, 138, 173, 0.08) 48%, transparent 72%);
+  filter: blur(8px);
+  animation: globePulse 3.8s ease-in-out infinite;
+}
+
+.animated-globe__sphere {
+  position: relative;
+  width: 78%;
+  height: 78%;
+  border-radius: 50%;
+  border: 1px solid rgba(22, 138, 173, 0.28);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(208, 235, 243, 0.52) 38%, rgba(22, 138, 173, 0.16) 72%, rgba(11, 19, 32, 0.08) 100%);
+  box-shadow:
+    inset 0 0 40px rgba(255, 255, 255, 0.35),
+    inset -24px -18px 38px rgba(22, 138, 173, 0.12),
+    0 24px 48px rgba(11, 19, 32, 0.12);
+  overflow: hidden;
+  animation: globeFloat 6.5s ease-in-out infinite;
+}
+
+.animated-globe__grid,
+.animated-globe__arc {
+  position: absolute;
+  inset: 0;
+}
+
+.animated-globe__grid--vertical {
+  background:
+    linear-gradient(90deg, transparent 18%, rgba(22, 138, 173, 0.14) 18.5%, transparent 19%),
+    linear-gradient(90deg, transparent 38%, rgba(22, 138, 173, 0.18) 38.5%, transparent 39%),
+    linear-gradient(90deg, transparent 61%, rgba(22, 138, 173, 0.18) 61.5%, transparent 62%),
+    linear-gradient(90deg, transparent 81%, rgba(22, 138, 173, 0.14) 81.5%, transparent 82%);
+}
+
+.animated-globe__grid--horizontal {
+  background:
+    linear-gradient(180deg, transparent 24%, rgba(22, 138, 173, 0.18) 24.5%, transparent 25%),
+    linear-gradient(180deg, transparent 49%, rgba(22, 138, 173, 0.22) 49.5%, transparent 50%),
+    linear-gradient(180deg, transparent 74%, rgba(22, 138, 173, 0.18) 74.5%, transparent 75%);
+  border-radius: 50%;
+  transform: scaleX(1.06);
+}
+
+.animated-globe__arc {
+  border-radius: 50%;
+  border-top: 2px solid rgba(255, 159, 28, 0.78);
+  opacity: 0.85;
+}
+
+.animated-globe__arc--one {
+  inset: 24% 12%;
+  transform: rotate(-12deg);
+}
+
+.animated-globe__arc--two {
+  inset: 42% 18%;
+  transform: rotate(14deg);
+}
+
+.animated-globe__arc--three {
+  inset: 34% 8%;
+  transform: rotate(36deg);
+}
+
+.animated-globe__dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff9f1c, #168aad);
+  box-shadow: 0 0 0 6px rgba(255, 159, 28, 0.12);
+  animation: freightPulse 2.8s ease-in-out infinite;
+}
+
 @media (max-width: 600px) {
   .globe-section > div {
     width: 98vw !important;
@@ -33,6 +122,40 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes globeFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes globePulse {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes freightPulse {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 1;
   }
 }
 :root {

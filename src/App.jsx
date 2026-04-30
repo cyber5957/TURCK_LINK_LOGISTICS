@@ -719,6 +719,35 @@ function ThemeToggle({ theme, onToggle }) {
   );
 }
 
+function AnimatedGlobe() {
+  const freightDots = [
+    { top: "24%", left: "30%" },
+    { top: "38%", left: "68%" },
+    { top: "58%", left: "24%" },
+    { top: "66%", left: "58%" },
+  ];
+
+  return (
+    <div className="animated-globe" aria-hidden="true">
+      <div className="animated-globe__halo" />
+      <div className="animated-globe__sphere">
+        <div className="animated-globe__grid animated-globe__grid--vertical" />
+        <div className="animated-globe__grid animated-globe__grid--horizontal" />
+        <div className="animated-globe__arc animated-globe__arc--one" />
+        <div className="animated-globe__arc animated-globe__arc--two" />
+        <div className="animated-globe__arc animated-globe__arc--three" />
+        {freightDots.map((dot, index) => (
+          <span
+            key={`${dot.top}-${dot.left}`}
+            className="animated-globe__dot"
+            style={{ top: dot.top, left: dot.left, animationDelay: `${index * 0.35}s` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SiteNav({ currentUser }) {
   const navItems = [
     { sectionId: "services", label: "Services" },
