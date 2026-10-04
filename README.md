@@ -158,7 +158,14 @@ PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<db>?retryWrites=true&w=majority
 JWT_SECRET=use_a_long_random_secret
 ALLOWED_ORIGINS=https://your-netlify-site.netlify.app
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-sender@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM=TruckLink Logistics <your-sender@gmail.com>
 ```
+
+The `SMTP_*` variables power booking confirmation emails. If they are missing, bookings still work but no email is sent.
 
 If `ALLOWED_ORIGINS` is missing, the backend now temporarily allows all origins in production and logs a warning so the frontend can still connect while you finish setup.
 
