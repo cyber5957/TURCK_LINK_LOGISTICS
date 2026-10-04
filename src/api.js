@@ -46,6 +46,7 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   signup: (data) => api.post('/auth/signup', data),
   verifyMfa: (data) => api.post('/auth/verify-mfa', data),
+  logout: () => api.post('/auth/logout'),
 };
 
 // Truck API

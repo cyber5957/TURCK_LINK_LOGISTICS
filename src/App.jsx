@@ -1402,7 +1402,7 @@ function parseValue(value) {
   return { end: parseFloat(normalizedValue) || 0, suffix: '' };
 }
 
-function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, currentUser }) {
+function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, currentUser, onLogout }) {
   const [activeBooking, setActiveBooking] = useState("Instant booking");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [trackingSubmitted, setTrackingSubmitted] = useState(false);
@@ -1551,6 +1551,11 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               onClick={() => goToHash("/auth", { role: "user", mode: "login" })}
             >
               {t("Sign In")}
+            </button>
+          )}
+          {currentUser && (
+            <button type="button" className="btn btn-outline topbar-signin" onClick={onLogout}>
+              {t("Logout")}
             </button>
           )}
           <LanguageToggle language={language} onToggle={onToggleLanguage} />
@@ -3092,7 +3097,7 @@ function BookingConfirmationPage({ theme, onToggleTheme, language }) {
   );
 }
 
-function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language }) {
+function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, onLogout }) {
   const [dashboardData, setDashboardData] = useState({
     trucks: 0,
     activeBookings: 0,
@@ -3179,6 +3184,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
           >
             {"\u2190"} {t("Back to homepage")}
           </button>
+          <button type="button" className="btn btn-outline" onClick={onLogout}>{t("Logout")}</button>
           <LanguageToggle language={language} onToggle={onToggleLanguage} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
@@ -3416,7 +3422,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
   );
 }
 
-function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language }) {
+function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, onLogout }) {
   const [dashboardData, setDashboardData] = useState({
     user: { name: '', email: '', phone: '' },
     stats: { totalBookings: 0, activeBookings: 0, completedBookings: 0, totalSpent: 0 },
@@ -3527,6 +3533,7 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
           >
             {"\u2190"} {t("Back to homepage")}
           </button>
+          <button type="button" className="btn btn-outline" onClick={onLogout}>{t("Logout")}</button>
           <LanguageToggle language={language} onToggle={onToggleLanguage} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
@@ -3819,6 +3826,19 @@ export default function App() {
     setLanguage((currentLang) => (currentLang === "en" ? "hi" : "en"));
   }
 
+  async function handleLogout() {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error("Logout request could not reach the backend:", error.message);
+    } finally {
+      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("user");
+      setCurrentUser(null);
+      goToHash("/");
+    }
+  }
+
   function dismissIntro() {
     window.sessionStorage.setItem(introStorageKey, "true");
     setShowIntro(false);
@@ -3914,7 +3934,7 @@ export default function App() {
   if (route.path === "/owner-dashboard") {
     return (
       <>
-      <OwnerDashboard theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} />
+      <OwnerDashboard theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} onLogout={handleLogout} />
       <AssistantWidget pageContext="owner-dashboard" />
       </>
     );
@@ -3923,7 +3943,7 @@ export default function App() {
   if (route.path === "/customer-dashboard") {
     return (
       <>
-      <CustomerDashboard theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} />
+      <CustomerDashboard theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} onLogout={handleLogout} />
       <AssistantWidget pageContext="customer-dashboard" />
       </>
     );
@@ -3931,7 +3951,7 @@ export default function App() {
 
   return (
     <>
-      <HomePage theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} currentUser={currentUser} />
+      <HomePage theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} currentUser={currentUser} onLogout={handleLogout} />
       <AssistantWidget pageContext="home" t={t} />
     </>
   );

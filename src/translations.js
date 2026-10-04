@@ -10,6 +10,7 @@ const translations = {
     "Security": "Security",
     "Dark mode": "Dark mode",
     "Light mode": "Light mode",
+    "Logout": "Logout",
 
     // Hero
     "Modern logistics marketplace": "Modern logistics marketplace",
@@ -204,6 +205,7 @@ const translations = {
     "Security": "सुरक्षा",
     "Dark mode": "डार्क मोड",
     "Light mode": "लाइट मोड",
+    "Logout": "लॉग आउट",
 
     // Hero
     "Modern logistics marketplace": "आधुनिक लॉजिस्टिक्स बाजार",
