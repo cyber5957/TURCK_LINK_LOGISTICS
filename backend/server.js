@@ -39,10 +39,17 @@ if (allowAllOrigins) {
   console.log('Allowed CORS origins:', Array.from(allowedOrigins));
 }
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log('MongoDB connection error:', err));
+// Support both names used by existing local and Render configurations.
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.error('MongoDB is not configured. Set MONGO_URI or MONGODB_URI.');
+}
+
+if (mongoUri) {
+  mongoose.connect(mongoUri)
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.log('MongoDB connection error:', err));
+}
 
 const app = express();
 app.set('trust proxy', 1);

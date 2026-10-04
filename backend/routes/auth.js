@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 
 const router = express.Router();
@@ -67,16 +68,27 @@ const userPayload = (user) => ({
 
 // Signup
 router.post('/signup', async (req, res) => {
-  const { name, email, password, role, phone, fleetSize } = req.body;
+  const { name, email, password, role, phone, fleetSize } = req.body || {};
+  const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+  if (typeof name !== 'string' || !name.trim() || !normalizedEmail || !password || !['user', 'owner'].includes(role)) {
+    return res.status(400).json({ message: 'Name, valid email, password, and account type are required.' });
+  }
+  if (String(password).length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
+  }
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ message: 'Signup is temporarily unavailable because the database is not connected.' });
+  }
+
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const secret = speakeasy.generateSecret({ name: `TruckLink (${email})` });
+    const secret = speakeasy.generateSecret({ name: `TruckLink (${normalizedEmail})` });
     const user = new User({
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
       role,
       phone,
@@ -99,6 +111,13 @@ router.post('/signup', async (req, res) => {
       message: 'Save this MFA secret in your authenticator app for future logins.',
     });
   } catch (err) {
+    console.error('Signup failed:', err);
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'An account with this email already exists.' });
+    }
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Please check the signup details and try again.' });
+    }
     res.status(500).json({ message: 'Server error' });
   }
 });

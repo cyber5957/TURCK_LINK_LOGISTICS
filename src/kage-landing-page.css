@@ -1,0 +1,9 @@
+.kage-scene-background {
+  overflow: hidden;
+  background: #05070a;
+}
+
+.kage-scene-background iframe {
+  border: 0;
+  pointer-events: none !important;
+}

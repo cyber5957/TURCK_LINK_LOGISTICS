@@ -484,15 +484,6 @@ const coverageStats = [
   { value: "24/7", label: "request intake for urgent and scheduled loads" },
 ];
 
-const majorCorridors = [
-  "Delhi to Jaipur",
-  "Mumbai to Pune",
-  "Hyderabad to Vijayawada",
-  "Bengaluru to Mysuru",
-  "Chennai to Coimbatore",
-  "Kolkata to Durgapur",
-];
-
 const serviceIndustries = [
   "Retail and FMCG",
   "Manufacturing",
@@ -706,258 +697,50 @@ function getAssistantWelcomeMessage(pageContext) {
   return "I am TruckMate. I can guide users through booking, pricing, truck search, and owner onboarding.";
 }
 
-function ThemeToggle({ theme, onToggle }) {
+function ThemeToggle({ theme, onToggle, language = "en" }) {
+  const targetTheme = theme === "light" ? "dark" : "light";
+  const targetLabel = language === "hi"
+    ? targetTheme === "dark" ? "\u0921\u093e\u0930\u094d\u0915" : "\u0932\u093e\u0907\u091f"
+    : targetTheme === "dark" ? "Dark" : "Light";
   return (
     <button
       type="button"
-      className="theme-toggle"
+      className="control-button theme-toggle"
       onClick={onToggle}
-      aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
+      aria-label={language === "hi" ? `\u0925\u0940\u092e \u0915\u094b ${targetLabel} \u092e\u094b\u0921 \u092e\u0947\u0902 \u092c\u0926\u0932\u0947\u0902` : `Switch to ${targetTheme} theme`}
+      title={language === "hi" ? `\u0925\u0940\u092e \u092c\u0926\u0932\u0947\u0902: ${targetLabel}` : `Switch to ${targetTheme} theme`}
     >
-      <span>{theme === "light" ? "Dark mode" : "Light mode"}</span>
+      <svg className="theme-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+        {theme === "light" ? (
+          <path d="M20.2 15.3A8.6 8.6 0 0 1 8.7 3.8 8.7 8.7 0 1 0 20.2 15.3Z" />
+        ) : (
+          <>
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
+          </>
+        )}
+      </svg>
+      <span>{targetLabel}</span>
     </button>
   );
 }
 
-function HeroFreightScene() {
-  return (
-    <div className="hero-scene" aria-hidden="true">
-      <div className="hero-scene__aura hero-scene__aura--amber" />
-      <div className="hero-scene__aura hero-scene__aura--teal" />
-      <div className="hero-scene__floor" />
-      <div className="hero-scene__lane hero-scene__lane--one" />
-      <div className="hero-scene__lane hero-scene__lane--two" />
-
-      <div className="hero-scene__truck">
-        <div className="hero-scene__truck-body" />
-        <div className="hero-scene__truck-cabin" />
-        <div className="hero-scene__truck-glow" />
-        <span className="hero-scene__wheel hero-scene__wheel--front" />
-        <span className="hero-scene__wheel hero-scene__wheel--rear" />
-      </div>
-    </div>
-  );
-}
-
-function CoverageMapExplorer() {
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [stateQuery, setStateQuery] = useState("");
-  const [cityQuery, setCityQuery] = useState("");
-  const [error, setError] = useState("");
-  const mapRef = useRef(null);
-  const leafletMapRef = useRef(null);
-  const stateMarkersRef = useRef([]);
-  const deferredStateQuery = useDeferredValue(stateQuery);
-  const deferredCityQuery = useDeferredValue(cityQuery);
-  const visibleStates = useMemo(
-    () => getStateSuggestions(deferredStateQuery),
-    [deferredStateQuery]
-  );
-  const visibleCities = useMemo(
-    () => getCitySuggestions(selectedState, deferredCityQuery),
-    [selectedState, deferredCityQuery]
-  );
-
-  function handleStateSelection(stateKey) {
-    setSelectedState(stateKey);
-    setSelectedCity("");
-    setStateQuery(stateKey);
-    setCityQuery("");
-    setError("");
-  }
-
-  function handleCitySelection(city) {
-    setSelectedCity(city);
-    setCityQuery(city);
-    setError("");
-  }
-
-  useEffect(() => {
-    let isMounted = true;
-    let mapInstance = null;
-
-    const loadMap = async () => {
-      if (!mapRef.current) {
-        return;
-      }
-
-      try {
-        const [{ default: L }] = await Promise.all([
-          import("leaflet"),
-          import("leaflet/dist/leaflet.css"),
-        ]);
-
-        if (!isMounted || !mapRef.current || mapRef.current._leaflet_id) {
-          return;
-        }
-
-        mapInstance = L.map(mapRef.current, {
-          zoomControl: false,
-          attributionControl: false,
-        }).setView([22.5937, 78.9629], 5);
-
-        leafletMapRef.current = mapInstance;
-
-        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }).addTo(mapInstance);
-
-        stateMarkersRef.current = states.map((state) => {
-          const location = stateLocations[state.key];
-          const marker = L.circleMarker([location.lat, location.lng], {
-            radius: 6,
-            weight: 1.5,
-            color: "#0b3f56",
-            fillColor: "#ff9f1c",
-            fillOpacity: 0.82,
-          })
-            .addTo(mapInstance)
-            .bindTooltip(state.label, {
-              direction: "top",
-              offset: [0, -8],
-            });
-
-          marker.on("click", () => {
-            handleStateSelection(state.key);
-            marker.openTooltip();
-          });
-
-          return { key: state.key, marker, location };
-        });
-      } catch (loadError) {
-        console.error("Error loading coverage map:", loadError);
-        if (isMounted) {
-          setError("Map preview is unavailable right now. You can still choose a state below.");
-        }
-      }
-    };
-
-    loadMap();
-
-    return () => {
-      isMounted = false;
-      stateMarkersRef.current = [];
-      leafletMapRef.current = null;
-      mapInstance?.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    stateMarkersRef.current.forEach(({ key, marker, location }) => {
-      const isActive = key === selectedState;
-
-      marker.setStyle({
-        radius: isActive ? 9 : 6,
-        color: isActive ? "#168aad" : "#0b3f56",
-        fillColor: isActive ? "#168aad" : "#ff9f1c",
-        fillOpacity: isActive ? 0.96 : 0.82,
-      });
-
-      if (isActive) {
-        marker.openTooltip();
-        leafletMapRef.current?.flyTo([location.lat, location.lng], 6, {
-          duration: 0.6,
-        });
-      }
-    });
-  }, [selectedState]);
-
-  function handleContinue() {
-    if (!selectedState || !selectedCity) {
-      setError("Please choose both a state and city to continue.");
-      return;
-    }
-
-    goToHash("/truck-finder", {
-      flow: "Scheduled booking",
-      state: selectedState,
-      city: selectedCity,
-    });
-  }
+function LanguageToggle({ language, onToggle }) {
+  const current = language === "en" ? "EN" : "हिंदी";
+  const next = language === "en" ? "हिंदी" : "EN";
 
   return (
-    <div className="coverage-map-shell map-selection-grid">
-      <article className="india-map-card coverage-interactive-card">
-        <div className="map-card-header">
-          <span className="badge warm">Live coverage focus</span>
-          <h4>India freight lanes</h4>
-        </div>
-        <div className="india-map-canvas coverage-map-canvas" ref={mapRef} />
-        <div className="map-hint">
-          <p>Pick a state on the map to preview supported cities and open the truck finder with that region preloaded.</p>
-        </div>
-        <div className="state-chip-row">
-          {visibleStates.map((state) => (
-            <button
-              key={state.key}
-              type="button"
-              className={`state-chip ${selectedState === state.key ? "active" : ""}`}
-              onClick={() => handleStateSelection(state.key)}
-            >
-              {state.label}
-            </button>
-          ))}
-        </div>
-      </article>
-
-      <aside className="city-panel coverage-city-panel">
-        <div className="panel-header">
-          <span className="badge neutral">Priority dispatch corridors</span>
-          <h4>{selectedState ? `Cities in ${selectedState}` : "Pick a state first"}</h4>
-        </div>
-
-        <p>
-          {selectedState
-            ? "Choose the city you want to start from. We will open the truck finder with route discovery ready for that region."
-            : "Use the map or state list to reveal the cities currently supported in this coverage view."}
-        </p>
-
-        <SearchableSelector
-          label="Search state"
-          placeholder="Type a state or union territory"
-          value={selectedState}
-          query={stateQuery}
-          onQueryChange={setStateQuery}
-          options={visibleStates.map((state) => state.key)}
-          onSelect={handleStateSelection}
-          emptyMessage="No matching state found."
-        />
-
-        <SearchableSelector
-          label="Search city"
-          placeholder={selectedState ? "Type a city" : "Select a state first"}
-          value={selectedCity}
-          query={cityQuery}
-          onQueryChange={setCityQuery}
-          options={visibleCities}
-          onSelect={handleCitySelection}
-          emptyMessage={selectedState ? "No matching city found." : "Choose a state to load cities."}
-        />
-
-        {selectedState && visibleCities.length > 0 && (
-          <div className="city-grid coverage-city-grid">
-            {visibleCities.map((city) => (
-              <button
-                key={city}
-                type="button"
-                className={`city-chip ${selectedCity === city ? "active" : ""}`}
-                onClick={() => handleCitySelection(city)}
-              >
-                {city}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {error && <p className="field-error">{error}</p>}
-
-        <button type="button" className="btn btn-primary full-width" onClick={handleContinue}>
-          Open truck finder for this route
-        </button>
-      </aside>
-    </div>
+    <button
+      type="button"
+      className="control-button language-toggle"
+      onClick={onToggle}
+      aria-label={language === "en" ? "Switch language to Hindi" : "Switch language to English"}
+      title={language === "en" ? "हिंदी में बदलें" : "Switch to English"}
+    >
+      <span className="language-current">{current}</span>
+      <span className="language-arrow" aria-hidden="true">{"\u2192"}</span>
+      <span className="language-next">{next}</span>
+    </button>
   );
 }
 
@@ -1317,7 +1100,12 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
         goToPostAuthDestination(response.data.user);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred');
+      setError(
+        err.response?.data?.message ||
+        (err.request
+          ? 'Could not reach the signup server. Check that the backend is running and try again.'
+          : 'Unable to submit the form. Please try again.')
+      );
     } finally {
       setLoading(false);
     }
@@ -1358,18 +1146,10 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
             className="btn btn-outline"
             onClick={() => goToHash("/")}
           >
-            ←
+            Ã¢â€ Â
           </button>
-          <div className="language-selector">
-            <button
-              type="button"
-              className="language-toggle"
-              onClick={onToggleLanguage}
-            >
-              {t(language === "en" ? "Hindi" : "English")}
-            </button>
-          </div>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <LanguageToggle language={language} onToggle={onToggleLanguage} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
 
         <div className="subpage-copy">
@@ -1530,6 +1310,7 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
                     <input
                       type="text"
                       name="name"
+                      required
                       placeholder={
                         isOwner ? t("Enter company or owner name") : t("Enter your full name")
                       }
@@ -1539,12 +1320,12 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
 
                 <label className="field-group">
                   <span>{t("Email address")}</span>
-                  <input type="email" name="email" placeholder={t("Enter your email")} />
+                  <input type="email" name="email" placeholder={t("Enter your email")} required />
                 </label>
 
                 <label className="field-group">
                   <span>{t("Password")}</span>
-                  <input type="password" name="password" placeholder={t("Enter your password")} />
+                  <input type="password" name="password" placeholder={t("Enter your password")} minLength={isSignup ? 8 : undefined} required />
                 </label>
 
                 {isSignup && (
@@ -1743,7 +1524,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               className="nav-link-button nav-dashboard"
               onClick={() => goToHash(currentUser.role === 'owner' ? '/owner-dashboard' : '/customer-dashboard')}
             >
-              📊 {t("My Dashboard")}
+              Ã°Å¸â€œÅ  {t("My Dashboard")}
             </button>
           )}
         </nav>
@@ -1772,23 +1553,8 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               {t("Sign In")}
             </button>
           )}
-          <button
-            type="button"
-            className="control-button language-toggle"
-            title={t("Toggle language")}
-            onClick={onToggleLanguage}
-          >
-            <span className="control-icon">🌐</span>
-            <span className="control-text">{language === "en" ? "EN" : "HI"}</span>
-          </button>
-          <button
-            type="button"
-            className="control-button theme-toggle"
-            title={t("Toggle theme")}
-            onClick={onToggleTheme}
-          >
-            <span className="control-icon">{theme === "light" ? "🌙" : "☀️"}</span>
-          </button>
+          <LanguageToggle language={language} onToggle={onToggleLanguage} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
       </header>
 
@@ -1838,7 +1604,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
             <div className="service-pills">
               {services.map((service) => (
-                <span key={service}>{service}</span>
+                  <span key={service}>{t(service)}</span>
               ))}
             </div>
 
@@ -1875,8 +1641,6 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               <p>{t("See service types, trust signals, and booking paths in one place before moving into the full truck finder flow.")}</p>
             </div>
 
-            <HeroFreightScene />
-
             <div className="quote-grid">
               <div>
                 <span>{t("Coverage")}</span>
@@ -1901,7 +1665,6 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
         <section className="stats-band" aria-label="Key trust metrics">
           {dynamicStats.map((stat, index) => (
             <article key={stat.label} className="stat-card" style={{ animationDelay: `${index * 0.2}s` }}>
-              <div className="stat-number">{index + 1}</div>
               <div className="stat-content">
                 <strong>
                   <CountUp
@@ -2100,19 +1863,6 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           </div>
 
           <div className="coverage-grid">
-            <article className="coverage-map-card">
-              <p className="booking-label">{t("High-demand corridors")}</p>
-              <h4>{t("Routes where fast matching matters most")}</h4>
-              <p className="coverage-note">
-                {t("These lanes often combine urgent demand, repeat booking behavior, and the strongest need for verified capacity visibility.")}
-              </p>
-              <div className="coverage-chip-list coverage-corridors">
-                {majorCorridors.map((corridor) => (
-                  <span key={corridor}>{t(corridor)}</span>
-                ))}
-              </div>
-            </article>
-
             <article className="coverage-detail-card">
               <p className="booking-label">{t("Shipment fit")}</p>
               <h4>{t("Commercial use cases the network is built to support")}</h4>
@@ -2134,7 +1884,6 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             </article>
           </div>
 
-          <CoverageMapExplorer />
         </section>
 
         <section className="trust-section" id="trust">
@@ -2560,7 +2309,7 @@ function MapSelectionPage({ flow, theme, onToggleTheme, language, onLanguageChan
           <button type="button" className="btn btn-outline" onClick={() => goToHash("/")}> 
             Back to homepage
           </button>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
 
         <div className="subpage-copy">
@@ -2796,7 +2545,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
           >
             Back to homepage
           </button>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
 
         <div className="subpage-copy">
@@ -3139,7 +2888,7 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
           <button type="button" className="btn btn-outline" onClick={() => goToHash("/truck-finder", { flow: draft.flow, state: draft.state, city: draft.city })}>
             Back to truck finder
           </button>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
         <div className="subpage-copy">
           <p className="eyebrow">Booking form</p>
@@ -3238,7 +2987,7 @@ function BookingConfirmationPage({ theme, onToggleTheme }) {
           <button type="button" className="btn btn-outline" onClick={() => goToHash("/")}>
             Back to homepage
           </button>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
         <div className="subpage-copy">
           <p className="eyebrow">Booking confirmation</p>
@@ -3372,18 +3121,10 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
             className="btn btn-outline"
             onClick={() => goToHash("/")}
           >
-            ← {t("Back to homepage")}
+            ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â {t("Back to homepage")}
           </button>
-          <div className="language-selector">
-            <button
-              type="button"
-              className="language-toggle"
-              onClick={onToggleLanguage}
-            >
-              {t(language === "en" ? "Hindi" : "English")}
-            </button>
-          </div>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <LanguageToggle language={language} onToggle={onToggleLanguage} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
 
         <div className="subpage-copy">
@@ -3422,23 +3163,23 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
           <div className="dashboard-content">
             <section className="overview-stats">
               <div className="stat-card-large">
-                <div className="stat-icon">🚛</div>
+                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Âº</div>
                 <div className="stat-info">
                   <h3>{dashboardData.trucks}</h3>
                   <p>{t("Total Trucks")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">📦</div>
+                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦</div>
                 <div className="stat-info">
                   <h3>{dashboardData.activeBookings}</h3>
                   <p>{t("Active Bookings")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">💰</div>
+                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°</div>
                 <div className="stat-info">
-                  <h3>₹{dashboardData.totalEarnings.toLocaleString()}</h3>
+                  <h3>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{dashboardData.totalEarnings.toLocaleString()}</h3>
                   <p>{t("Total Earnings")}</p>
                 </div>
               </div>
@@ -3452,7 +3193,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                     <div className="activity-info">
                       <strong>{booking.truck?.truckNumber}</strong>
                       <span>{booking.customer?.name}</span>
-                      <small>{booking.pickupLocation} → {booking.deliveryLocation}</small>
+                      <small>{booking.pickupLocation} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ {booking.deliveryLocation}</small>
                     </div>
                     <div className="activity-status">
                       <span
@@ -3509,7 +3250,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                       <input type="text" name="route" placeholder="e.g., Delhi to Jaipur" required />
                     </label>
                     <label className="field-group">
-                      <span>{t("Base Price (₹)")}</span>
+                      <span>{t("Base Price (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹)")}</span>
                       <input type="number" name="basePrice" placeholder="5000" required />
                     </label>
                     <label className="field-group">
@@ -3536,7 +3277,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                       <p><strong>{t("Type")}:</strong> {truck.truckType}</p>
                       <p><strong>{t("Capacity")}:</strong> {truck.capacity}</p>
                       <p><strong>{t("Route")}:</strong> {truck.route}</p>
-                      <p><strong>{t("Price")}:</strong> ₹{truck.basePrice}</p>
+                      <p><strong>{t("Price")}:</strong> ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{truck.basePrice}</p>
                       {truck.features && truck.features.length > 0 && (
                         <p><strong>{t("Features")}:</strong> {truck.features.join(', ')}</p>
                       )}
@@ -3572,7 +3313,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                       <small>{booking.customer?.email}</small>
                     </div>
                     <div>{booking.truck?.truckNumber}</div>
-                    <div>{booking.pickupLocation} → {booking.deliveryLocation}</div>
+                    <div>{booking.pickupLocation} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ {booking.deliveryLocation}</div>
                     <div>
                       <span
                         className="status-badge"
@@ -3581,7 +3322,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                         {booking.status}
                       </span>
                     </div>
-                    <div>₹{booking.price}</div>
+                    <div>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{booking.price}</div>
                     <div className="booking-actions">
                       {booking.status === 'pending' && (
                         <button
@@ -3728,18 +3469,10 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
             className="btn btn-outline"
             onClick={() => goToHash("/")}
           >
-            ← {t("Back to homepage")}
+            ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â {t("Back to homepage")}
           </button>
-          <div className="language-selector">
-            <button
-              type="button"
-              className="language-toggle"
-              onClick={onToggleLanguage}
-            >
-              {t(language === "en" ? "Hindi" : "English")}
-            </button>
-          </div>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <LanguageToggle language={language} onToggle={onToggleLanguage} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
 
         <div className="subpage-copy">
@@ -3778,30 +3511,30 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
           <div className="dashboard-content">
             <section className="overview-stats">
               <div className="stat-card-large">
-                <div className="stat-icon">📦</div>
+                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦</div>
                 <div className="stat-info">
                   <h3>{dashboardData.stats.totalBookings}</h3>
                   <p>{t("Total Bookings")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">🚚</div>
+                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡</div>
                 <div className="stat-info">
                   <h3>{dashboardData.stats.activeBookings}</h3>
                   <p>{t("Active Shipments")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">✅</div>
+                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div>
                 <div className="stat-info">
                   <h3>{dashboardData.stats.completedBookings}</h3>
                   <p>{t("Completed")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">💰</div>
+                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°</div>
                 <div className="stat-info">
-                  <h3>₹{dashboardData.stats.totalSpent.toLocaleString()}</h3>
+                  <h3>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{dashboardData.stats.totalSpent.toLocaleString()}</h3>
                   <p>{t("Total Spent")}</p>
                 </div>
               </div>
@@ -3814,8 +3547,8 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
                   <div key={booking._id} className="activity-item">
                     <div className="activity-info">
                       <strong>{booking.truck?.truckNumber} - {booking.truck?.truckType}</strong>
-                      <span>{booking.pickupLocation} → {booking.deliveryLocation}</span>
-                      <small>₹{booking.price} • {new Date(booking.createdAt).toLocaleDateString()}</small>
+                      <span>{booking.pickupLocation} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ {booking.deliveryLocation}</span>
+                      <small>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{booking.price} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ {new Date(booking.createdAt).toLocaleDateString()}</small>
                     </div>
                     <div className="activity-status">
                       <span
@@ -3848,7 +3581,7 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
                         </span>
                       </div>
                       <div className="booking-price">
-                        <strong>₹{booking.price}</strong>
+                        <strong>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{booking.price}</strong>
                         <span
                           className="status-badge"
                           style={{ backgroundColor: getStatusColor(booking.status) }}
@@ -3860,7 +3593,7 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
 
                     <div className="booking-details">
                       <div className="detail-row">
-                        <span><strong>{t("Route")}:</strong> {booking.pickupLocation} → {booking.deliveryLocation}</span>
+                        <span><strong>{t("Route")}:</strong> {booking.pickupLocation} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ {booking.deliveryLocation}</span>
                         <span><strong>{t("Cargo")}:</strong> {booking.cargoType} ({booking.weight})</span>
                       </div>
                       <div className="detail-row">
@@ -3898,11 +3631,11 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
                             value={reviewData.rating}
                             onChange={(e) => setReviewData({...reviewData, rating: parseInt(e.target.value)})}
                           >
-                            <option value={5}>⭐⭐⭐⭐⭐ (5 stars)</option>
-                            <option value={4}>⭐⭐⭐⭐ (4 stars)</option>
-                            <option value={3}>⭐⭐⭐ (3 stars)</option>
-                            <option value={2}>⭐⭐ (2 stars)</option>
-                            <option value={1}>⭐ (1 star)</option>
+                            <option value={5}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (5 stars)</option>
+                            <option value={4}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (4 stars)</option>
+                            <option value={3}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (3 stars)</option>
+                            <option value={2}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (2 stars)</option>
+                            <option value={1}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (1 star)</option>
                           </select>
                         </div>
                         <textarea
@@ -3998,7 +3731,7 @@ export default function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const t = (key) => translations[language][key] || key;
+  const t = (key) => translations[language]?.[key] ?? translations.en?.[key] ?? key;
 
   useEffect(() => {
     const handleHashChange = () => {
