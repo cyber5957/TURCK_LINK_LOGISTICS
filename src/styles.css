@@ -3193,6 +3193,16 @@ button {
   margin-bottom: 32px;
 }
 
+.form-feedback {
+  margin: -8px 0 20px;
+  color: var(--accent, #168a8a);
+  font-weight: 600;
+}
+
+.form-feedback.is-error {
+  color: #dc3545;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

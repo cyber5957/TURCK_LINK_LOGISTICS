@@ -11,6 +11,9 @@ const translations = {
     "Dark mode": "Dark mode",
     "Light mode": "Light mode",
     "Logout": "Logout",
+    "Adding truck...": "Adding truck...",
+    "Truck added successfully. You can add another truck below.": "Truck added successfully. You can add another truck below.",
+    "Could not add the truck. Check the details and try again.": "Could not add the truck. Check the details and try again.",
 
     // Hero
     "Modern logistics marketplace": "Modern logistics marketplace",
@@ -206,6 +209,9 @@ const translations = {
     "Dark mode": "डार्क मोड",
     "Light mode": "लाइट मोड",
     "Logout": "लॉग आउट",
+    "Adding truck...": "ट्रक जोड़ा जा रहा है...",
+    "Truck added successfully. You can add another truck below.": "ट्रक सफलतापूर्वक जुड़ गया। आप नीचे एक और ट्रक जोड़ सकते हैं।",
+    "Could not add the truck. Check the details and try again.": "ट्रक नहीं जोड़ा जा सका। विवरण जाँचकर फिर कोशिश करें।",
 
     // Hero
     "Modern logistics marketplace": "आधुनिक लॉजिस्टिक्स बाजार",

@@ -3108,6 +3108,9 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddTruckForm, setShowAddTruckForm] = useState(false);
+  const [addingTruck, setAddingTruck] = useState(false);
+  const [truckFormMessage, setTruckFormMessage] = useState('');
+  const [truckFormError, setTruckFormError] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -3138,17 +3141,29 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
 
   const handleAddTruck = async (event) => {
     event.preventDefault();
-    const formData = new FormData(event.target);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const data = Object.fromEntries(formData);
+    data.basePrice = Number(data.basePrice);
+    data.features = (data.features || '')
+      .split(',')
+      .map((feature) => feature.trim())
+      .filter(Boolean);
 
     try {
+      setAddingTruck(true);
+      setTruckFormMessage('');
+      setTruckFormError(false);
       await ownerAPI.addTruck(data);
-      setShowAddTruckForm(false);
-      fetchDashboardData(); // Refresh data
-      alert('Truck added successfully!');
+      await fetchDashboardData();
+      form.reset();
+      setTruckFormMessage(t('Truck added successfully. You can add another truck below.'));
     } catch (err) {
       console.error('Error adding truck:', err);
-      alert('Error adding truck. Please try again.');
+      setTruckFormError(true);
+      setTruckFormMessage(err.response?.data?.message || t('Could not add the truck. Check the details and try again.'));
+    } finally {
+      setAddingTruck(false);
     }
   };
 
@@ -3223,6 +3238,20 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="dashboard-content">
+            <section className="fleet-header">
+              <h3>{t("Fleet Management")}</h3>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  setActiveTab('fleet');
+                  setShowAddTruckForm(true);
+                  setTruckFormMessage('');
+                }}
+              >
+                {t("+ Add New Truck")}
+              </button>
+            </section>
             <section className="overview-stats">
               <div className="stat-card-large">
                 <div className="stat-icon">{"\u{1F69A}"}</div>
@@ -3279,11 +3308,16 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
               <h3>{t("Your Fleet")}</h3>
               <button
                 className="btn btn-primary"
-                onClick={() => setShowAddTruckForm(!showAddTruckForm)}
+                onClick={() => {
+                  setShowAddTruckForm(!showAddTruckForm);
+                  setTruckFormMessage('');
+                }}
               >
                 {showAddTruckForm ? t("Cancel") : t("+ Add New Truck")}
               </button>
             </section>
+
+            {truckFormMessage && <p className={`form-feedback${truckFormError ? ' is-error' : ''}`} role="status">{truckFormMessage}</p>}
 
             {showAddTruckForm && (
               <section className="add-truck-form">
@@ -3297,10 +3331,10 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
                       <span>{t("Truck Type")}</span>
                       <select name="truckType" required>
                         <option value="">{t("Select type")}</option>
-                        <option>{t("Open truck")}</option>
-                        <option>{t("Container")}</option>
-                        <option>{t("Cold chain")}</option>
-                        <option>{t("Express delivery")}</option>
+                        <option value="Open truck">{t("Open truck")}</option>
+                        <option value="Container">{t("Container")}</option>
+                        <option value="Cold chain">{t("Cold chain")}</option>
+                        <option value="Express delivery">{t("Express delivery")}</option>
                       </select>
                     </label>
                     <label className="field-group">
@@ -3320,7 +3354,9 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
                       <input type="text" name="features" placeholder="GPS tracking, Refrigerated" />
                     </label>
                   </div>
-                  <button type="submit" className="btn btn-primary">{t("Add Truck")}</button>
+                  <button type="submit" className="btn btn-primary" disabled={addingTruck}>
+                    {addingTruck ? t("Adding truck...") : t("Add Truck")}
+                  </button>
                 </form>
               </section>
             )}
