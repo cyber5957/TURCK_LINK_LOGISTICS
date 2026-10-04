@@ -2842,19 +2842,23 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
 
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData);
+    const currentUser = JSON.parse(window.localStorage.getItem("user") || "null");
     const confirmation = {
       ...draft,
       ...data,
       bookingReference: `TL-${Date.now().toString().slice(-6)}`,
+      customerEmail: currentUser?.email || "",
       quotedPrice: draft.basePrice + Math.round((Number(data.weight) || 0) * 18),
       estimatedPickup: getEtaLabel(draft.basePrice, draft.flow),
       status: "Awaiting carrier confirmation",
+      bookingSaved: false,
+      emailSent: false,
     };
 
     try {
       if (window.localStorage.getItem("token")) {
         try {
-          await bookingAPI.createBooking({
+          const response = await bookingAPI.createBooking({
             truckId: draft.truckId,
             pickupLocation: data.pickupLocation,
             deliveryLocation: data.deliveryLocation,
@@ -2863,6 +2867,11 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
             pickupDate: data.pickupDate,
             specialInstructions: data.specialInstructions,
           });
+          confirmation.bookingSaved = true;
+          confirmation.bookingReference = response.data.booking?.bookingReference || confirmation.bookingReference;
+          confirmation.emailSent = response.data.email?.sent === true;
+          confirmation.emailReason = response.data.email?.reason || "";
+          confirmation.customerEmail = response.data.email?.recipient || confirmation.customerEmail;
         } catch (apiError) {
           console.error("Booking API fallback used:", apiError);
         }
@@ -2960,7 +2969,7 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
   );
 }
 
-function BookingConfirmationPage({ theme, onToggleTheme }) {
+function BookingConfirmationPage({ theme, onToggleTheme, language }) {
   const confirmation = useMemo(() => {
     const stored = window.sessionStorage.getItem(bookingStorageKeys.confirmation);
     return stored ? JSON.parse(stored) : null;
@@ -2980,6 +2989,44 @@ function BookingConfirmationPage({ theme, onToggleTheme }) {
     );
   }
 
+  const escapeHtml = (value) => String(value ?? "").replace(/[&<>\"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;",
+  })[char]);
+
+  function downloadReceipt() {
+    const rows = [
+      ["Reference", confirmation.bookingReference],
+      ["Customer email", confirmation.customerEmail],
+      ["Truck", `${confirmation.truckType} - ${confirmation.capacity}`],
+      ["Transport partner", confirmation.providerName],
+      ["Pickup", confirmation.pickupLocation],
+      ["Delivery", confirmation.deliveryLocation],
+      ["Cargo", confirmation.cargoType],
+      ["Weight", `${confirmation.weight} tons`],
+      ["Pickup date", confirmation.pickupDate],
+      ["Estimated total", formatPrice(confirmation.quotedPrice)],
+      ["Pickup estimate", confirmation.estimatedPickup],
+      ["Status", confirmation.status],
+    ];
+    const tableRows = rows.map(([label, value]) =>
+      `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(value || "Not provided")}</td></tr>`
+    ).join("");
+    const receipt = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TruckLink booking receipt ${escapeHtml(confirmation.bookingReference)}</title><style>body{font:16px/1.5 Arial,sans-serif;color:#17202b;max-width:760px;margin:40px auto;padding:24px}header{border-bottom:3px solid #f99a2e;padding-bottom:18px;margin-bottom:24px}h1{margin:0;color:#123044}p{color:#52616d}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px;border-bottom:1px solid #dfe5e9}th{width:34%;color:#52616d}.ref{font-size:1.15rem;font-weight:bold;color:#0b6171}@media print{body{margin:0 auto}}</style><body><header><h1>TruckLink Logistics</h1><p>Booking receipt</p><div class="ref">Reference ${escapeHtml(confirmation.bookingReference)}</div></header><table>${tableRows}</table><p>This receipt confirms that your booking request was received. Carrier confirmation may follow.</p></body></html>`;
+    const blob = new Blob([receipt], { type: "text/html;charset=utf-8" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `TruckLink-Receipt-${String(confirmation.bookingReference || "booking").replace(/[^a-z0-9-]/gi, "")}.html`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  }
+
   return (
     <div className="page-shell">
       <header className="subpage-topbar">
@@ -2997,9 +3044,15 @@ function BookingConfirmationPage({ theme, onToggleTheme }) {
 
       <main className="confirmation-shell">
         <section className="confirmation-hero">
+          <span className="confirmation-success-icon" aria-hidden="true">{"\u2713"}</span>
           <span className="badge warm">Reference {confirmation.bookingReference}</span>
           <h3>{confirmation.truckType} from {confirmation.providerName}</h3>
           <p>{confirmation.status}</p>
+          {confirmation.emailSent ? (
+            <p className="confirmation-email-note">Confirmation sent to {confirmation.customerEmail}.</p>
+          ) : (
+            <p className="confirmation-email-note">{confirmation.bookingSaved ? (confirmation.emailReason === "not_configured" ? "Booking saved. Add SMTP settings on the server to email this receipt." : "Booking saved, but the confirmation email could not be sent. Please download your receipt below.") : "Booking receipt is ready. The request could not be saved to the server, so no email was sent."}</p>
+          )}
         </section>
 
         <section className="confirmation-grid">
@@ -3024,6 +3077,9 @@ function BookingConfirmationPage({ theme, onToggleTheme }) {
         </section>
 
         <div className="booking-form-actions">
+          <button type="button" className="btn btn-primary" onClick={downloadReceipt}>
+            Download booking receipt
+          </button>
           <button type="button" className="btn btn-outline" onClick={() => goToHash("/truck-finder", { flow: confirmation.flow, state: confirmation.state, city: confirmation.city })}>
             Book another truck
           </button>
@@ -3849,7 +3905,7 @@ export default function App() {
   if (route.path === "/booking-confirmation") {
     return (
       <>
-      <BookingConfirmationPage theme={theme} onToggleTheme={toggleTheme} />
+      <BookingConfirmationPage theme={theme} onToggleTheme={toggleTheme} language={language} />
       <AssistantWidget pageContext="booking" />
       </>
     );

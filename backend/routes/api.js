@@ -3,6 +3,7 @@ const { auth } = require('../middleware/auth');
 const User = require('../models/User');
 const Truck = require('../models/Truck');
 const Booking = require('../models/Booking');
+const { sendBookingConfirmationEmail } = require('../services/bookingEmail');
 const Review = require('../models/Review');
 
 const router = express.Router();
@@ -77,13 +78,14 @@ router.post('/bookings', auth, async (req, res) => {
     const booking = new Booking({
       customer: req.user.id,
       truck: truckId,
+      bookingReference: `TL-${Date.now().toString(36).toUpperCase()}`,
       pickupLocation,
       deliveryLocation,
       cargoType,
       weight,
       pickupDate,
       specialInstructions,
-      price: truck.basePrice // In real app, this would be calculated
+      price: truck.basePrice + Math.round((Number.parseFloat(weight) || 0) * 18)
     });
 
     await booking.save();
@@ -92,7 +94,16 @@ router.post('/bookings', auth, async (req, res) => {
     truck.availability = false;
     await truck.save();
 
-    res.status(201).json({ message: 'Booking created successfully', booking });
+    const customer = await User.findById(req.user.id).select('name email').lean();
+    const email = customer?.email
+      ? await sendBookingConfirmationEmail({ recipient: customer.email, customerName: customer.name, booking, truck })
+      : { sent: false, reason: 'email_unavailable' };
+
+    res.status(201).json({
+      message: 'Booking created successfully',
+      booking,
+      email: { ...email, recipient: customer?.email || null },
+    });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

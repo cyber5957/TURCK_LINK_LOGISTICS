@@ -2392,6 +2392,45 @@ button {
   gap: 18px;
 }
 
+.confirmation-hero {
+  position: relative;
+  padding-left: 104px;
+}
+
+.confirmation-success-icon {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #168a68;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.confirmation-email-note {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--teal) 8%, var(--surface));
+}
+
+@media (max-width: 640px) {
+  .confirmation-hero {
+    padding: 94px 20px 20px;
+  }
+
+  .confirmation-success-icon {
+    top: 20px;
+    left: 20px;
+  }
+}
+
 @keyframes shimmer {
   to {
     transform: translateX(100%);
