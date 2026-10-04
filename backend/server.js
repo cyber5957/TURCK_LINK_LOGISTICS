@@ -40,16 +40,7 @@ if (allowAllOrigins) {
 }
 
 // Support both names used by existing local and Render configurations.
-const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
-if (!mongoUri) {
-  console.error('MongoDB is not configured. Set MONGO_URI or MONGODB_URI.');
-}
-
-if (mongoUri) {
-  mongoose.connect(mongoUri)
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.log('MongoDB connection error:', err));
-}
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
 const app = express();
 app.set('trust proxy', 1);
@@ -70,8 +61,9 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
+  const databaseConnected = mongoose.connection.readyState === 1;
+  res.status(databaseConnected ? 200 : 503).json({
+    status: databaseConnected ? 'ok' : 'database_unavailable',
     mongoReadyState: mongoose.connection.readyState,
     cors: allowAllOrigins ? 'open' : Array.from(allowedOrigins),
   });
@@ -93,4 +85,22 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+async function startServer() {
+  if (!mongoUri) {
+    console.error('MongoDB is not configured. Set MONGODB_URI in backend/.env.');
+    process.exitCode = 1;
+    return;
+  }
+
+  try {
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 });
+    console.log('MongoDB connected');
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  } catch (err) {
+    console.error('MongoDB connection failed; API server was not started:', err.message);
+    process.exitCode = 1;
+  }
+}
+
+startServer();

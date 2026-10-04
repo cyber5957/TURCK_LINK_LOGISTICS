@@ -9,7 +9,11 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const seedDatabase = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI);
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    if (!mongoUri) {
+      throw new Error('Set MONGODB_URI in backend/.env before seeding.');
+    }
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 });
     console.log('Connected to MongoDB');
 
     // Clear existing data
