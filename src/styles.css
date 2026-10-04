@@ -4284,3 +4284,28 @@ button {
     border: 0 !important;
   }
 }
+.add-truck-form,
+.add-truck-form form,
+.dashboard-content,
+.overview-stats {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.form-grid > *,
+.stat-card-large,
+.stat-info {
+  min-width: 0;
+}
+
+.form-grid .field-group span {
+  overflow-wrap: anywhere;
+}
+
+.stat-icon {
+  flex: 0 0 60px;
+}

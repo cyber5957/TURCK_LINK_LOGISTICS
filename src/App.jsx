@@ -1146,7 +1146,7 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
             className="btn btn-outline"
             onClick={() => goToHash("/")}
           >
-            Ã¢â€ Â
+            {"\u2190"}
           </button>
           <LanguageToggle language={language} onToggle={onToggleLanguage} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
@@ -1524,7 +1524,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               className="nav-link-button nav-dashboard"
               onClick={() => goToHash(currentUser.role === 'owner' ? '/owner-dashboard' : '/customer-dashboard')}
             >
-              Ã°Å¸â€œÅ  {t("My Dashboard")}
+              {"\u{1F4CA}"} {t("My Dashboard")}
             </button>
           )}
         </nav>
@@ -3121,7 +3121,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
             className="btn btn-outline"
             onClick={() => goToHash("/")}
           >
-            ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â {t("Back to homepage")}
+            {"\u2190"} {t("Back to homepage")}
           </button>
           <LanguageToggle language={language} onToggle={onToggleLanguage} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
@@ -3163,23 +3163,23 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
           <div className="dashboard-content">
             <section className="overview-stats">
               <div className="stat-card-large">
-                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Âº</div>
+                <div className="stat-icon">{"\u{1F69A}"}</div>
                 <div className="stat-info">
                   <h3>{dashboardData.trucks}</h3>
                   <p>{t("Total Trucks")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦</div>
+                <div className="stat-icon">{"\u{1F4E6}"}</div>
                 <div className="stat-info">
                   <h3>{dashboardData.activeBookings}</h3>
                   <p>{t("Active Bookings")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°</div>
+                <div className="stat-icon">{"\u{1F4B0}"}</div>
                 <div className="stat-info">
-                  <h3>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{dashboardData.totalEarnings.toLocaleString()}</h3>
+                  <h3>{"\u20B9"}{dashboardData.totalEarnings.toLocaleString("en-IN")}</h3>
                   <p>{t("Total Earnings")}</p>
                 </div>
               </div>
@@ -3193,7 +3193,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                     <div className="activity-info">
                       <strong>{booking.truck?.truckNumber}</strong>
                       <span>{booking.customer?.name}</span>
-                      <small>{booking.pickupLocation} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ {booking.deliveryLocation}</small>
+                      <small>{booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</small>
                     </div>
                     <div className="activity-status">
                       <span
@@ -3250,7 +3250,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                       <input type="text" name="route" placeholder="e.g., Delhi to Jaipur" required />
                     </label>
                     <label className="field-group">
-                      <span>{t("Base Price (ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹)")}</span>
+                      <span>{t("Base Price (\u20B9)")}</span>
                       <input type="number" name="basePrice" placeholder="5000" required />
                     </label>
                     <label className="field-group">
@@ -3277,7 +3277,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                       <p><strong>{t("Type")}:</strong> {truck.truckType}</p>
                       <p><strong>{t("Capacity")}:</strong> {truck.capacity}</p>
                       <p><strong>{t("Route")}:</strong> {truck.route}</p>
-                      <p><strong>{t("Price")}:</strong> ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{truck.basePrice}</p>
+                      <p><strong>{t("Price")}:</strong> {"\u20B9"}{truck.basePrice}</p>
                       {truck.features && truck.features.length > 0 && (
                         <p><strong>{t("Features")}:</strong> {truck.features.join(', ')}</p>
                       )}
@@ -3313,7 +3313,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                       <small>{booking.customer?.email}</small>
                     </div>
                     <div>{booking.truck?.truckNumber}</div>
-                    <div>{booking.pickupLocation} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ {booking.deliveryLocation}</div>
+                    <small>{booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</small>
                     <div>
                       <span
                         className="status-badge"
@@ -3322,7 +3322,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language })
                         {booking.status}
                       </span>
                     </div>
-                    <div>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{booking.price}</div>
+                    <div>{"\u20B9"}{booking.price}</div>
                     <div className="booking-actions">
                       {booking.status === 'pending' && (
                         <button
@@ -3469,7 +3469,7 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
             className="btn btn-outline"
             onClick={() => goToHash("/")}
           >
-            ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â {t("Back to homepage")}
+            {"\u2190"} {t("Back to homepage")}
           </button>
           <LanguageToggle language={language} onToggle={onToggleLanguage} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
@@ -3511,30 +3511,30 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
           <div className="dashboard-content">
             <section className="overview-stats">
               <div className="stat-card-large">
-                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦</div>
+                <div className="stat-icon">{"\u{1F4E6}"}</div>
                 <div className="stat-info">
                   <h3>{dashboardData.stats.totalBookings}</h3>
                   <p>{t("Total Bookings")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡</div>
+                <div className="stat-icon">{"\u{1F69A}"}</div>
                 <div className="stat-info">
                   <h3>{dashboardData.stats.activeBookings}</h3>
                   <p>{t("Active Shipments")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦</div>
+                <div className="stat-icon">{"\u{2705}"}</div>
                 <div className="stat-info">
                   <h3>{dashboardData.stats.completedBookings}</h3>
                   <p>{t("Completed")}</p>
                 </div>
               </div>
               <div className="stat-card-large">
-                <div className="stat-icon">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°</div>
+                <div className="stat-icon">{"\u{1F4B0}"}</div>
                 <div className="stat-info">
-                  <h3>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{dashboardData.stats.totalSpent.toLocaleString()}</h3>
+                  <h3>{"\u20B9"}{dashboardData.stats.totalSpent.toLocaleString("en-IN")}</h3>
                   <p>{t("Total Spent")}</p>
                 </div>
               </div>
@@ -3547,8 +3547,8 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
                   <div key={booking._id} className="activity-item">
                     <div className="activity-info">
                       <strong>{booking.truck?.truckNumber} - {booking.truck?.truckType}</strong>
-                      <span>{booking.pickupLocation} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ {booking.deliveryLocation}</span>
-                      <small>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{booking.price} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ {new Date(booking.createdAt).toLocaleDateString()}</small>
+                      <span><strong>{t("Route")}:</strong> {booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</span>
+                      <small>{"\u20B9"}{booking.price} ? {new Date(booking.createdAt).toLocaleDateString()}</small>
                     </div>
                     <div className="activity-status">
                       <span
@@ -3581,7 +3581,7 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
                         </span>
                       </div>
                       <div className="booking-price">
-                        <strong>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¹{booking.price}</strong>
+                        <strong>{"\u20B9"}{booking.price}</strong>
                         <span
                           className="status-badge"
                           style={{ backgroundColor: getStatusColor(booking.status) }}
@@ -3593,7 +3593,7 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
 
                     <div className="booking-details">
                       <div className="detail-row">
-                        <span><strong>{t("Route")}:</strong> {booking.pickupLocation} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ {booking.deliveryLocation}</span>
+                        <span><strong>{t("Route")}:</strong> {booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</span>
                         <span><strong>{t("Cargo")}:</strong> {booking.cargoType} ({booking.weight})</span>
                       </div>
                       <div className="detail-row">
@@ -3631,11 +3631,11 @@ function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language
                             value={reviewData.rating}
                             onChange={(e) => setReviewData({...reviewData, rating: parseInt(e.target.value)})}
                           >
-                            <option value={5}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (5 stars)</option>
-                            <option value={4}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (4 stars)</option>
-                            <option value={3}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (3 stars)</option>
-                            <option value={2}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (2 stars)</option>
-                            <option value={1}>ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â (1 star)</option>
+                            <option value={5}>{"\u2605\u2605\u2605\u2605\u2605"} (5 stars)</option>
+                            <option value={4}>{"\u2605\u2605\u2605\u2605"} (4 stars)</option>
+                            <option value={3}>{"\u2605\u2605\u2605"} (3 stars)</option>
+                            <option value={2}>{"\u2605\u2605"} (2 stars)</option>
+                            <option value={1}>{"\u2605"} (1 star)</option>
                           </select>
                         </div>
                         <textarea
