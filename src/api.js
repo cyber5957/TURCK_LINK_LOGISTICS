@@ -66,6 +66,7 @@ export const ownerAPI = {
   getDashboard: () => api.get('/owner/dashboard'),
   addTruck: (data) => api.post('/owner/trucks', data),
   getTrucks: () => api.get('/owner/trucks'),
+  updateTruckAvailability: (id, availability) => api.put(`/owner/trucks/${id}/availability`, { availability }),
   getBookings: () => api.get('/owner/bookings'),
   updateBookingStatus: (id, data) => api.put(`/owner/bookings/${id}`, data),
 };

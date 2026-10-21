@@ -6,6 +6,7 @@ const bookingSchema = new mongoose.Schema({
   bookingReference: { type: String, trim: true },
   pickupLocation: { type: String, required: true },
   deliveryLocation: { type: String, required: true },
+  contactPhone: { type: String, trim: true },
   cargoType: { type: String, required: true },
   weight: { type: String, required: true },
   pickupDate: { type: Date, required: true },

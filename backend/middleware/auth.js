@@ -5,7 +5,7 @@ const auth = (req, res, next) => {
   if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'local-development-only-not-for-deployment');
     if (decoded.type !== 'access') {
       return res.status(401).json({ message: 'Invalid access token' });
     }
@@ -21,4 +21,9 @@ const ownerAuth = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, ownerAuth };
+const customerAuth = (req, res, next) => {
+  if (req.user.role !== 'user') return res.status(403).json({ message: 'Customer account required' });
+  next();
+};
+
+module.exports = { auth, ownerAuth, customerAuth };

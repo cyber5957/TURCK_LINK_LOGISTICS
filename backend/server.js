@@ -1,15 +1,22 @@
+const dotenv = require('dotenv');
+const path = require('path');
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET must be configured in production.');
+}
+if (!process.env.JWT_SECRET) {
+  console.warn('JWT_SECRET is not configured; using a local development-only secret.');
+}
+
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const dotenv = require('dotenv');
-const path = require('path');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const ownerRoutes = require('./routes/owner');
 const customerRoutes = require('./routes/customer');
 const apiRoutes = require('./routes/api');
-
-dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const defaultOrigins = [
   'http://localhost:5173',
@@ -31,10 +38,10 @@ const configuredOrigins = parseOrigins(process.env.ALLOWED_ORIGINS);
 const allowedOrigins = new Set(
   configuredOrigins.length > 0 ? configuredOrigins : defaultOrigins.map(normalizeOrigin)
 );
-const allowAllOrigins = process.env.NODE_ENV === 'production' && configuredOrigins.length === 0;
+const allowAllOrigins = false;
 
-if (allowAllOrigins) {
-  console.warn('ALLOWED_ORIGINS is not set in production. Allowing all origins until it is configured.');
+if (process.env.NODE_ENV === 'production' && configuredOrigins.length === 0) {
+  console.error('ALLOWED_ORIGINS is not set in production. Cross-origin browser requests will be blocked.');
 } else {
   console.log('Allowed CORS origins:', Array.from(allowedOrigins));
 }

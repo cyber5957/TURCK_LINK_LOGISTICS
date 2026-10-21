@@ -1,5 +1,6 @@
 const express = require('express');
-const { auth } = require('../middleware/auth');
+const mongoose = require('mongoose');
+const { auth, customerAuth } = require('../middleware/auth');
 const User = require('../models/User');
 const Truck = require('../models/Truck');
 const Booking = require('../models/Booking');
@@ -7,6 +8,7 @@ const { sendBookingConfirmationEmail } = require('../services/bookingEmail');
 const Review = require('../models/Review');
 
 const router = express.Router();
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // Search trucks
 router.get('/trucks', async (req, res) => {
@@ -15,7 +17,7 @@ router.get('/trucks', async (req, res) => {
     const { route, truckType, maxPrice, verified } = req.query;
     let query = { availability: true };
 
-    if (route) query.route = new RegExp(route, 'i');
+    if (route) query.route = new RegExp(escapeRegex(String(route).slice(0, 100)), 'i');
     if (truckType) query.truckType = truckType;
     if (maxPrice) query.basePrice = { $lte: parseInt(maxPrice, 10) };
     if (verified === 'true') query.verified = true;
@@ -69,11 +71,26 @@ router.get('/trucks/:id', async (req, res) => {
 
 // Create booking
 router.post('/bookings', auth, async (req, res) => {
-  const { truckId, pickupLocation, deliveryLocation, cargoType, weight, pickupDate, specialInstructions } = req.body;
+  if (req.user.role !== 'user') return res.status(403).json({ message: 'Customer account required' });
+  const { truckId, pickupLocation, deliveryLocation, cargoType, weight, pickupDate, specialInstructions, contactPhone } = req.body || {};
+  const parsedWeight = Number.parseFloat(String(weight || '').replace(/[^0-9.]/g, ''));
+  const parsedPickupDate = new Date(pickupDate);
+  if (!mongoose.isValidObjectId(truckId)) {
+    return res.status(400).json({ message: 'Choose a valid truck listing.' });
+  }
+  if (!truckId || !pickupLocation?.trim() || !deliveryLocation?.trim() || !cargoType?.trim() || !Number.isFinite(parsedWeight) || parsedWeight <= 0 || !Number.isFinite(parsedPickupDate.getTime()) || parsedPickupDate < new Date(new Date().setHours(0, 0, 0, 0))) {
+    return res.status(400).json({ message: 'Enter valid pickup, delivery, cargo, positive weight, and a pickup date that is not in the past.' });
+  }
   try {
-    const truck = await Truck.findById(truckId);
-    if (!truck) return res.status(404).json({ message: 'Truck not found' });
-    if (!truck.availability) return res.status(400).json({ message: 'Truck not available' });
+    const truck = await Truck.findOneAndUpdate(
+      { _id: truckId, availability: true },
+      { $set: { availability: false } },
+      { new: true }
+    );
+    if (!truck) {
+      const exists = await Truck.exists({ _id: truckId });
+      return res.status(exists ? 409 : 404).json({ message: exists ? 'Truck is no longer available. Please choose another listing.' : 'Truck not found.' });
+    }
 
     const booking = new Booking({
       customer: req.user.id,
@@ -83,16 +100,18 @@ router.post('/bookings', auth, async (req, res) => {
       deliveryLocation,
       cargoType,
       weight,
+      contactPhone,
       pickupDate,
       specialInstructions,
-      price: truck.basePrice + Math.round((Number.parseFloat(weight) || 0) * 18)
+      price: truck.basePrice + Math.round(parsedWeight * 18)
     });
 
-    await booking.save();
-
-    // Mark truck as unavailable
-    truck.availability = false;
-    await truck.save();
+    try {
+      await booking.save();
+    } catch (saveError) {
+      await Truck.findByIdAndUpdate(truck._id, { availability: true });
+      throw saveError;
+    }
 
     const customer = await User.findById(req.user.id).select('name email').lean();
     const email = customer?.email
@@ -105,12 +124,13 @@ router.post('/bookings', auth, async (req, res) => {
       email: { ...email, recipient: customer?.email || null },
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Booking creation failed:', err);
+    res.status(500).json({ message: 'We could not save this booking. Please try again.' });
   }
 });
 
 // Get user bookings
-router.get('/bookings', auth, async (req, res) => {
+router.get('/bookings', auth, customerAuth, async (req, res) => {
   try {
     const bookings = await Booking.find({ customer: req.user.id })
       .populate('truck', 'truckNumber truckType capacity route')
@@ -122,7 +142,7 @@ router.get('/bookings', auth, async (req, res) => {
 });
 
 // Add review
-router.post('/reviews', auth, async (req, res) => {
+router.post('/reviews', auth, customerAuth, async (req, res) => {
   const { bookingId, rating, comment } = req.body;
   try {
     const booking = await Booking.findById(bookingId);
@@ -162,7 +182,7 @@ router.post('/reviews', auth, async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const totalTrucks = await Truck.countDocuments({ verified: true });
-    const totalBookings = await Truck.countDocuments({ status: 'delivered' });
+    const totalBookings = await Booking.countDocuments({ status: 'delivered' });
     const totalUsers = await User.countDocuments();
     const avgRating = await Truck.aggregate([
       { $match: { verified: true } },

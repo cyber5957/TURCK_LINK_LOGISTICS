@@ -1,5 +1,4 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import CountUp from "react-countup";
 import QRCode from "qrcode";
 import translations from "./translations";
 import { authAPI, truckAPI, bookingAPI, ownerAPI, customerAPI } from "./api";
@@ -15,16 +14,16 @@ const services = [
 
 const heroEssentials = [
   {
-    title: "Pan-India coverage",
-    text: "Support for intercity, regional, and long-haul freight movements.",
+    title: "Location selector demo",
+    text: "Explore sample Indian state and city choices in the booking flow.",
   },
   {
-    title: "Transparent booking flow",
-    text: "Compare trucks, estimated pricing, and service quality before you commit.",
+    title: "Booking request flow",
+    text: "Review a truck listing and submit a request using the project demo data.",
   },
   {
-    title: "Built for trust",
-    text: "Verified partners, customer reviews, and guided booking steps reduce uncertainty.",
+    title: "Two account roles",
+    text: "Explore customer and owner screens. Provider verification here is a demo flag, not a real KYC service.",
   },
 ];
 
@@ -124,46 +123,26 @@ function formatPrice(value) {
 
 function getAvailabilityText(listing) {
   if (!listing.availability) {
-    return "Booked";
+    return "Unavailable in demo data";
   }
 
-  return listing.verified ? "Ready for dispatch" : "Limited availability";
+  return "Marked available in demo data";
 }
 
 function getEtaLabel(basePrice, flow) {
-  if (flow === "Instant booking") {
-    return basePrice > 25000 ? "Pickup in 3-5 hrs" : "Pickup in 60-90 mins";
-  }
-
-  if (flow === "Enterprise contract") {
-    return "Dedicated fleet scheduling";
-  }
-
-  return "Pickup slot available tomorrow";
+  return "Pickup timing to be confirmed by the transport owner";
 }
 
 function getTrustHighlights(listing) {
   return [
-    listing.verified ? "KYC verified owner" : "Profile under review",
-    `${listing.reviewCount || 0}+ booking-backed reviews`,
-    listing.rating >= 4.5 ? "High on-time delivery confidence" : "Competitive route pricing",
+    listing.verified ? "Demo verification flag" : "Not verified in demo data",
+    `${listing.reviewCount || 0} sample reviews`,
+    "Performance not validated",
   ];
 }
 
 function getRecommendationBadge(listing) {
-  if (listing.verified && (listing.rating || 0) >= 4.7) {
-    return "Top Rated";
-  }
-
-  if ((listing.basePrice || 0) <= 16000) {
-    return "Best Value";
-  }
-
-  if ((listing.reviewCount || 0) >= 12) {
-    return "Popular Choice";
-  }
-
-  return "Fast Pickup";
+  return listing.verified ? "Demo listing" : "Sample listing";
 }
 
 function createBookingDraft(listing, flow, selectedState, selectedCity) {
@@ -358,48 +337,26 @@ function MfaQrCode({ value }) {
   );
 }
 
-const trustStats = [
-  { value: "12k+", label: "monthly delivery requests compared" },
-  { value: "900+", label: "verified transport partners onboarded" },
-  { value: "98.2%", label: "bookings completed without pricing disputes" },
-];
-
 const features = [
   {
-    title: "Full truckload transport",
-    description:
-      "Move bulk and commercial shipments with dedicated truck capacity for intercity and regional routes.",
-    supporting: "Best for heavy loads, factory dispatches, and wholesale movement.",
+    title: "Open truck",
+    description: "One of the truck type options represented in the search and owner listing flows.",
+    supporting: "Sample category in this project demo.",
   },
   {
-    title: "Container movement",
-    description:
-      "Support container-based freight that needs safer enclosure, route discipline, and predictable handling.",
-    supporting: "Useful for electronics, packaged goods, and higher-value cargo.",
+    title: "Container",
+    description: "A selectable truck category for creating and filtering demo listings.",
+    supporting: "Sample category in this project demo.",
   },
   {
-    title: "Cold chain logistics",
-    description:
-      "Handle temperature-sensitive shipments with truck options suited for food, pharma, and perishables.",
-    supporting: "Designed for cargo where timing and controlled conditions both matter.",
+    title: "Cold chain",
+    description: "A selectable truck category shown in the project booking flow.",
+    supporting: "Sample category in this project demo.",
   },
   {
-    title: "Express and urgent dispatch",
-    description:
-      "Find faster truck availability for shipments that need same-day pickup or tighter turnaround windows.",
-    supporting: "Strong fit for emergency replenishment and time-critical stock movement.",
-  },
-  {
-    title: "Warehouse-linked distribution",
-    description:
-      "Support last-mile and secondary distribution legs for businesses moving stock from hubs to stores or clients.",
-    supporting: "Helpful for retail, FMCG, and multi-drop supply runs.",
-  },
-  {
-    title: "Enterprise logistics support",
-    description:
-      "Create repeat booking flows for businesses that need recurring transport, preferred pricing, and account continuity.",
-    supporting: "Built for companies shipping regularly across fixed lanes.",
+    title: "Express delivery",
+    description: "A selectable truck category in the project data model.",
+    supporting: "Sample category in this project demo.",
   },
 ];
 
@@ -411,77 +368,61 @@ const steps = [
   },
   {
     number: "02",
-    title: "Compare trusted providers",
-    text: "Review service quality, estimated prices, ratings, and security signals in one clear flow.",
+    title: "Compare demo listings",
+    text: "Review truck type, sample pricing, ratings, and listing details in one flow.",
   },
   {
     number: "03",
-    title: "Book with confidence",
-    text: "Confirm the best option and continue into the dedicated booking experience on the next page.",
-  },
-];
-
-const testimonials = [
-  {
-    quote:
-      "Before this, finding a refrigerated truck at a fair rate took hours. Here we could compare options in one place.",
-    name: "Riya Sharma",
-    role: "Food Distributor",
-  },
-  {
-    quote:
-      "The review-led matching flow makes this feel trustworthy. It saves back-and-forth calls with random brokers.",
-    name: "Arjun Mehta",
-    role: "Retail Supply Manager",
+    title: "Submit a booking request",
+    text: "Save a request in the demo and wait for a transport owner to confirm availability.",
   },
 ];
 
 const bookingOptions = [
   {
     title: "Instant booking",
-    text: "Best for urgent shipments where customers want quick truck confirmation and estimated pricing immediately.",
-    meta: "Fastest option",
+    text: "Explore the demo truck search flow for a shipment request.",
+    meta: "Demo flow",
   },
   {
     title: "Scheduled booking",
-    text: "Useful for planned dispatches where pickup date, route timing, and service type are decided in advance.",
-    meta: "For planned delivery",
+    text: "Explore the same truck search and booking form with a scheduled flow label.",
+    meta: "Demo flow",
   },
   {
     title: "Enterprise contract",
-    text: "For businesses that move goods regularly and need recurring bookings, preferred pricing, and account support.",
-    meta: "For repeat customers",
+    text: "Recurring contracts and enterprise account support are not implemented in this project.",
+    meta: "Future idea",
   },
 ];
 
 const ownerBenefits = [
   {
-    title: "Verified leads, less dead mileage",
-    text: "Customer requests arrive with route, timing, and shipment intent already structured for faster decisions.",
+    title: "Add a truck listing",
+    text: "Owners can enter vehicle type, capacity, route, base price, and features in the demo.",
   },
   {
-    title: "Faster quote wins",
-    text: "Owners who respond quickly with clear pricing and trust signals get surfaced as stronger matches.",
+    title: "Review booking requests",
+    text: "The owner dashboard shows requests associated with the owner's listed trucks.",
   },
   {
-    title: "A profile that actually converts",
-    text: "Ratings, KYC verification, and route visibility help quality fleets stand out without constant follow-up calls.",
+    title: "Update request status",
+    text: "Owners can change booking status in the project dashboard. This does not connect to real shipment tracking.",
   },
 ];
 
 const ownerSignals = [
-  { label: "Active demand lanes", value: "Delhi -> Jaipur, Mumbai -> Pune, Hyderabad -> Vijayawada" },
-  { label: "Target callback speed", value: "Under 15 minutes for urgent bookings" },
-  { label: "Best fit fleets", value: "Verified owners with 3 to 20 trucks" },
+  { label: "Current project stage", value: "Deployed demo project; no customers or transport owners onboarded yet" },
+  { label: "Owner tools in this demo", value: "Add truck listings and view booking requests" },
 ];
 
 const coverageStats = [
-  { value: `${locationCatalog.length}`, label: "states and union territories covered" },
+  { value: `${locationCatalog.length}`, label: "states and union territories in the demo selector" },
   {
     value: `${locationCatalog.reduce((total, item) => total + item.cities.length, 0)}+`,
-    label: "cities mapped for booking discovery",
+    label: "cities listed in the demo selector",
   },
-  { value: "24/7", label: "request intake for urgent and scheduled loads" },
+  { value: "Demo", label: "location data does not confirm truck availability" },
 ];
 
 const serviceIndustries = [
@@ -494,53 +435,34 @@ const serviceIndustries = [
 ];
 
 const trustSignals = [
-  { value: "8+", label: "years supporting freight movement" },
-  { value: "18k+", label: "shipment requests assisted across the platform" },
-  { value: "650+", label: "business clients and transport partners served" },
-  { value: "36", label: "states and union territories in service coverage" },
+  { value: "2", label: "account roles: customer and owner" },
+  { value: "4", label: "truck categories in the demo" },
+  { value: "MFA", label: "authenticator-based sign-in support" },
 ];
 
 const certifications = [
-  "KYC-verified transport partners",
-  "Documentation-first dispatch process",
-  "Audit-ready booking records",
-  "Safety and compliance operating checklist",
-];
-
-const partnerLogos = [
-  "Retail Chain",
-  "Pharma Network",
-  "Manufacturing Group",
-  "FMCG Distributor",
-  "E-commerce Fulfillment",
-  "Auto Components",
+  "Customer and owner account flows",
+  "Booking requests with status updates",
+  "Authenticator app MFA support",
 ];
 
 const aboutHighlights = [
   {
     title: "Who we are",
-    text: "TruckLink is a logistics and truck-booking platform built to connect shippers with trusted transport capacity through a clearer, faster digital workflow.",
+    text: "TruckLink is a software project that demonstrates truck discovery and booking requests for customer and owner accounts.",
   },
   {
     title: "Mission and values",
-    text: "We focus on reliability, transparency, operational discipline, and service quality so freight decisions feel less risky and more efficient.",
+    text: "The project explores clear booking steps, role-based account screens, and useful shipment information.",
   },
   {
     title: "Safety and reliability",
-    text: "Verified partners, booking records, route visibility, and structured communication help reduce uncertainty during dispatch and delivery.",
+    text: "The demo includes booking records and account authentication. It has no real-world KYC, carrier network, or operational dispatch service.",
   },
   {
     title: "Company story",
-    text: "The product direction is built around a simple idea: logistics booking should feel more professional, modern, and trustworthy for both customers and fleet owners.",
+    text: "TruckLink is a deployed project demo. It has not yet been tested with customers or transport owners.",
   },
-];
-
-const contactChannels = [
-  { label: "Phone", value: "+91 98765 43210" },
-  { label: "Email", value: "operations@trucklinklogistics.com" },
-  { label: "Office", value: "Sector 62, Noida, Uttar Pradesh, India" },
-  { label: "WhatsApp", value: "+91 98765 43210" },
-  { label: "Business hours", value: "Mon-Sat, 8:00 AM to 8:00 PM" },
 ];
 
 const listings = [
@@ -687,7 +609,7 @@ function goToSection(sectionId) {
 
 function getAssistantWelcomeMessage(pageContext) {
   if (pageContext === "truck-finder") {
-    return "I am TruckMate. I can guide you through routes, pricing, and verified truck options on this page.";
+    return "I am TruckMate. I can guide you through demo routes, sample prices, and truck options on this page.";
   }
 
   if (pageContext === "auth") {
@@ -851,7 +773,7 @@ function buildAssistantReply(message, pageContext, intent) {
     text.includes("safe") ||
     text.includes("review")
   ) {
-    return "Verified providers are highlighted in the truck finder with trust signals and review context. Security is built around KYC checks, role-based access, and safer booking records.";
+    return "The truck finder can filter listings by a verification flag in the demo data. It is not connected to real KYC or provider checks.";
   }
 
   if (
@@ -873,13 +795,13 @@ function buildAssistantReply(message, pageContext, intent) {
     }
 
     if (pageContext === "truck-finder") {
-      return "You are on the truck finder page. Use the search box, service filter, budget slider, and verified-only toggle to compare trucks quickly.";
+      return "You are on the truck finder page. Use search, truck type, budget, and demo verification filters to explore sample listings.";
     }
 
-    return "You are on the homepage. Start with a booking flow, then move into the truck finder page to compare trucks, pricing, and providers.";
+    return "You are on the homepage. Start a demo booking flow, then explore sample trucks and project pricing.";
   }
 
-  return "I can help with booking flow, pricing, owner onboarding, verified providers, login/signup, or using the truck finder. Try one of the quick prompts below.";
+  return "I can help explain the demo booking flow, sample pricing, owner account, login/signup, or truck finder. Try one of the quick prompts below.";
 }
 
 function AssistantWidget({ pageContext }) {
@@ -1082,23 +1004,17 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
         setMfaToken(response.data.mfaToken);
         setMfaSecret(response.data.mfaSecret || '');
         setMfaOtpAuthUrl(response.data.mfaOtpAuthUrl || '');
-        setInfo('Enter the 6-digit code from your authenticator app.');
+        setInfo(response.data.mfaEnrollment
+          ? 'Scan the setup QR code, then enter the code to finish creating your account.'
+          : 'Enter the 6-digit code from your authenticator app.');
         return;
-      }
-
-      if (response.data.mfaSecret) {
-        setMfaSecret(response.data.mfaSecret);
-        setMfaOtpAuthUrl(response.data.mfaOtpAuthUrl || '');
-        setInfo('Save this MFA secret in your authenticator app. Future logins will require it.');
       }
 
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setCurrentUser(response.data.user);
 
-      if (!response.data.mfaSecret) {
-        goToPostAuthDestination(response.data.user);
-      }
+      goToPostAuthDestination(response.data.user);
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -1214,7 +1130,7 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
                 <span>
                   {isOwner
                     ? t("Review requests and manage customer connections.")
-                    : t("Find verified partners with reviews and pricing clarity.")}
+                    : t("Explore sample truck listings and a booking request flow.")}
                 </span>
               </div>
               <div>
@@ -1280,6 +1196,11 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
                       value={mfaCode}
                       onChange={(event) => setMfaCode(event.target.value)}
                       placeholder={t('Enter 6-digit code')}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      pattern="[0-9]{6}"
+                      maxLength={6}
+                      required
                     />
                   </label>
                   <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
@@ -1366,20 +1287,6 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
               </form>
             )}
 
-            {mfaSecret && (
-              <div className="auth-info-card">
-                <div className="auth-info-header">
-                  <p>{t('Scan this QR code with your authenticator app:')}</p>
-                </div>
-                {mfaOtpAuthUrl && (
-                  <div className="mfa-qr-wrap">
-                    <MfaQrCode value={mfaOtpAuthUrl} />
-                  </div>
-                )}
-                <p>{t('Or enter this MFA secret manually:')}</p>
-                <strong className="mfa-secret-code">{mfaSecret}</strong>
-              </div>
-            )}
           </article>
         </section>
       </main>
@@ -1387,86 +1294,17 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
   );
 }
 
-function parseValue(value) {
-  const normalizedValue = String(value || "").trim();
-
-  if (normalizedValue.includes('k+')) {
-    return { end: parseFloat(normalizedValue.replace('k+', '')) * 1000, suffix: 'k+' };
-  }
-  if (normalizedValue.includes('+')) {
-    return { end: parseFloat(normalizedValue.replace('+', '')), suffix: '+' };
-  }
-  if (normalizedValue.includes('%')) {
-    return { end: parseFloat(normalizedValue.replace('%', '')), suffix: '%' };
-  }
-  return { end: parseFloat(normalizedValue) || 0, suffix: '' };
-}
-
 function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, currentUser, onLogout }) {
   const [activeBooking, setActiveBooking] = useState("Instant booking");
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [trackingSubmitted, setTrackingSubmitted] = useState(false);
-  const [contactSubmitted, setContactSubmitted] = useState(false);
-  const [stats, setStats] = useState({
-    totalTrucks: 0,
-    totalBookings: 0,
-    totalUsers: 0,
-    averageRating: 0
-  });
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        // For now, just use the hardcoded stats
-        setStats({
-          totalTrucks: 12000,
-          totalBookings: 1500,
-          totalUsers: 450,
-          averageRating: 4.8
-        });
-      } catch (err) {
-        console.error("Error fetching stats:", err);
-        // Fallback to default stats
-        setStats({
-          totalTrucks: 12000,
-          totalBookings: 1500,
-          totalUsers: 450,
-          averageRating: 4.8
-        });
-      }
-    };
-
-    fetchStats();
-  }, []);
-
   function handleBookingChoice(title) {
     setActiveBooking(title);
     goToHash("/truck-map", { flow: title });
   }
 
-  function handleTrackingSubmit(event) {
-    event.preventDefault();
-    if (!trackingNumber.trim()) {
-      return;
-    }
-    setTrackingSubmitted(true);
-  }
-
-  function handleContactSubmit(event) {
-    event.preventDefault();
-    setContactSubmitted(true);
-  }
-
-  const dynamicStats = [
-    { value: `${stats.totalTrucks}+`, label: "verified transport partners onboarded" },
-    { value: `${stats.totalBookings}+`, label: "bookings supported across active corridors" },
-    { value: `${stats.averageRating}`, label: "average partner rating" },
-  ];
-
   const heroMetrics = [
-    { value: "24/7", label: "dispatch support for urgent and scheduled loads" },
-    { value: "36", label: "states and union territories covered" },
-    { value: "15 min", label: "target callback for high-intent shipment requests" },
+    { value: "2", label: "account types in the project: customer and owner" },
+    { value: "4", label: "truck categories represented in the demo" },
+    { value: "Demo", label: "deployed project; no live marketplace partners yet" },
   ];
 
   return (
@@ -1566,12 +1404,12 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
       <main>
         <section className="hero-card">
           <div className="hero-copy">
-            <span className="badge">{t("India-ready logistics platform")}</span>
+              <span className="badge">Truck booking project demo</span>
             <h2>
-              {t("Book reliable trucks, compare rates, and move freight with confidence.")}
+              Explore sample truck listings and a booking request flow.
             </h2>
             <p>
-              {t("TruckLink helps businesses and customers find the right truck faster with clear pricing, verified transport partners, and dedicated flows for urgent, scheduled, and repeat shipments.")}
+              TruckLink is a deployed project demo that explores how customers and truck owners could manage truck discovery and booking requests in one place. It has not onboarded real customers or transport owners yet.
             </p>
 
             <div className="hero-metric-row" aria-label="Service snapshot">
@@ -1625,8 +1463,8 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
           <aside className="quote-panel" aria-label="Platform summary">
             <div className="quote-header">
-              <p>{t("Operations snapshot")}</p>
-              <span>{t("Built for shippers and fleet owners")}</span>
+              <p>Project overview</p>
+              <span>Customer and owner demo flows</span>
             </div>
 
             <div className="quote-route">
@@ -1637,19 +1475,19 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               <div className="route-line" />
               <div>
                 <strong>{t("Delivery")}</strong>
-                <span>{t("Tracked journey")}</span>
+                <span>Booking status updates</span>
               </div>
             </div>
 
             <div className="hero-panel-note">
               <strong>{t("Faster freight decisions")}</strong>
-              <p>{t("See service types, trust signals, and booking paths in one place before moving into the full truck finder flow.")}</p>
+              <p>Explore truck categories, search filters, and a booking request flow using project demo data.</p>
             </div>
 
             <div className="quote-grid">
               <div>
                 <span>{t("Coverage")}</span>
-                <strong>{t("Pan-India service lanes")}</strong>
+                <strong>Location selector in demo</strong>
               </div>
               <div>
                 <span>{t("Truck types")}</span>
@@ -1657,29 +1495,21 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               </div>
               <div>
                 <span>{t("Booking support")}</span>
-                <strong>{t("Instant, scheduled, and enterprise")}</strong>
+                <strong>Instant and scheduled demo paths</strong>
               </div>
               <div>
                 <span>{t("Trust layer")}</span>
-                <strong>{t("Verified partners and reviews")}</strong>
+                <strong>Provider and review interface</strong>
               </div>
             </div>
           </aside>
         </section>
 
-        <section className="stats-band" aria-label="Key trust metrics">
-          {dynamicStats.map((stat, index) => (
+        <section className="stats-band" aria-label="Project capabilities">
+          {heroMetrics.map((stat, index) => (
             <article key={stat.label} className="stat-card" style={{ animationDelay: `${index * 0.2}s` }}>
               <div className="stat-content">
-                <strong>
-                  <CountUp
-                    end={parseValue(stat.value).end}
-                    duration={2.5}
-                    enableScrollSpy
-                    delay={index * 0.3}
-                    suffix={parseValue(stat.value).suffix}
-                  />
-                </strong>
+                <strong>{stat.value}</strong>
                 <span>{t(stat.label)}</span>
               </div>
             </article>
@@ -1691,57 +1521,32 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             <article className="tracking-card">
               <div className="section-heading">
                 <span className="badge neutral">{t("Shipment inquiry")}</span>
-                <h3>{t("Add a simple tracking entry point even before live tracking is built")}</h3>
+                <h3>Shipment tracking is not connected yet</h3>
                 <p>
-                  {t("Customers expect shipment visibility. This inquiry form gives them a quick way to request status using a tracking number, with WhatsApp and team contact as fallback options.")}
+                  This project demonstrates booking records and status updates inside its account dashboards. It cannot look up a shipment from a tracking number yet.
                 </p>
               </div>
 
-              <form className="tracking-form" onSubmit={handleTrackingSubmit}>
-                <label className="field-group">
-                  <span>{t("Tracking number")}</span>
-                  <input
-                    type="text"
-                    value={trackingNumber}
-                    onChange={(event) => {
-                      setTrackingNumber(event.target.value);
-                      setTrackingSubmitted(false);
-                    }}
-                    placeholder={t("Enter shipment or booking number")}
-                    required
-                  />
-                </label>
-                <div className="tracking-actions">
-                  <button type="submit" className="btn btn-primary">
-                    {t("Check shipment status")}
-                  </button>
-                  <a className="btn btn-outline" href="https://wa.me/919876543210" target="_blank" rel="noreferrer">
-                    {t("WhatsApp support")}
-                  </a>
-                </div>
-                {trackingSubmitted && (
-                  <p className="form-message">
-                    {t("Status inquiry received. Our operations team will share an update through phone, email, or WhatsApp shortly.")}
-                  </p>
-                )}
-              </form>
+              <button type="button" className="btn btn-primary" onClick={() => goToHash("/auth", { role: "user", mode: "login" })}>
+                Open customer dashboard
+              </button>
             </article>
 
             <aside className="tracking-panel">
               <p className="booking-label">{t("Fallback support")}</p>
-              <h4>{t("Need urgent help with dispatch or delivery status?")}</h4>
+              <h4>Project status</h4>
               <div className="tracking-support-list">
                 <div>
-                  <span>{t("Call operations")}</span>
-                  <strong>+91 98765 43210</strong>
+                  <span>Marketplace</span>
+                  <strong>No live customers or truck owners onboarded</strong>
                 </div>
                 <div>
-                  <span>{t("Email support")}</span>
-                  <strong>operations@trucklinklogistics.com</strong>
+                  <span>Project</span>
+                  <strong>Deployed demo</strong>
                 </div>
                 <div>
-                  <span>{t("WhatsApp response")}</span>
-                  <strong>{t("Quick status follow-up for active shipments")}</strong>
+                  <span>Live shipment tracking</span>
+                  <strong>Not implemented</strong>
                 </div>
               </div>
             </aside>
@@ -1750,10 +1555,10 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
         <section className="content-grid" id="services">
           <div className="section-heading">
-            <span className="badge neutral">{t("Core services")}</span>
-            <h3>{t("The logistics capabilities customers expect should be obvious at a glance")}</h3>
+            <span className="badge neutral">Truck and cargo examples</span>
+            <h3>Categories represented in the project</h3>
             <p>
-              {t("This section now explains the actual transport and supply chain support available on the platform, so visitors can immediately tell whether TruckLink fits their shipment needs.")}
+              These cards describe sample use cases for the interface. They are not a list of currently available real-world transport services.
             </p>
           </div>
 
@@ -1806,9 +1611,9 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
         <section className="booking-section" id="booking">
           <div className="section-heading">
             <span className="badge neutral">{t("Booking options")}</span>
-            <h3>{t("Choose a booking flow that matches the shipment need")}</h3>
+            <h3>Explore the booking flows represented in the demo</h3>
             <p>
-              {t("Different customers book differently. Some need a truck in hours, some plan a dispatch in advance, and some need long-term logistics support. The product should make those options obvious.")}
+              Instant and scheduled are labels for the same demo search and booking path. Enterprise contracts are a future idea and are not available in this project.
             </p>
           </div>
 
@@ -1828,9 +1633,10 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
                 <button
                   type="button"
                   className="btn btn-outline small"
+                  disabled={option.title === "Enterprise contract"}
                   onClick={() => handleBookingChoice(option.title)}
                 >
-                  Open truck finder
+                  {option.title === "Enterprise contract" ? "Not in this demo" : "Open truck finder"}
                 </button>
               </article>
             ))}
@@ -1850,10 +1656,10 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
         <section className="coverage-section" id="coverage">
           <div className="coverage-overview">
             <div className="section-heading wide">
-              <span className="badge neutral">{t("Coverage and network")}</span>
-              <h3>{t("Customers should instantly see where the platform can move freight")}</h3>
+              <span className="badge neutral">Location selector</span>
+              <h3>Explore the locations available in the demo</h3>
               <p>
-                {t("TruckLink already has location coverage data across India, so this section turns that into a business-friendly network view with service scale, active corridors, and shipment-fit industries.")}
+                The project includes a state and city selector for exploring the booking flow. This list does not represent confirmed carrier coverage or live truck availability.
               </p>
             </div>
 
@@ -1870,15 +1676,15 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           <div className="coverage-grid">
             <article className="coverage-detail-card">
               <p className="booking-label">{t("Shipment fit")}</p>
-              <h4>{t("Commercial use cases the network is built to support")}</h4>
+              <h4>Example shipment scenarios</h4>
               <div className="coverage-signal-list">
                 <div className="coverage-signal-card">
                   <strong>{t("Best for")}</strong>
-                  <span>{t("Urgent dispatches, planned lane movements, and repeat B2B transport needs.")}</span>
+                  <span>Urgent dispatches, planned trips, and repeat transport needs are examples for exploring the interface.</span>
                 </div>
                 <div className="coverage-signal-card">
                   <strong>{t("Industries")}</strong>
-                  <span>{t("Retail, manufacturing, food, pharma, e-commerce, and packaged goods supply chains.")}</span>
+                  <span>Retail, manufacturing, food, pharma, e-commerce, and packaged goods are sample cargo contexts only.</span>
                 </div>
               </div>
               <ul className="coverage-industry-list">
@@ -1893,10 +1699,10 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
         <section className="trust-section" id="trust">
           <div className="section-heading">
-            <span className="badge neutral">{t("Trust signals")}</span>
-            <h3>{t("Credibility should be visible before a customer ever places a booking")}</h3>
+            <span className="badge neutral">Project capabilities</span>
+            <h3>What this project demonstrates</h3>
             <p>
-              {t("Logistics decisions are trust-heavy, so the homepage now highlights operating experience, shipment volume, service reach, compliance-minded processes, and customer proof in one place.")}
+              These are implemented software capabilities, not evidence of a live transport network, verified real-world partners, or commercial operating history.
             </p>
           </div>
 
@@ -1911,8 +1717,8 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             </div>
 
             <article className="certification-card">
-              <p className="booking-label">{t("Compliance and confidence")}</p>
-              <h4>{t("Professional operating signals for shippers and procurement teams")}</h4>
+              <p className="booking-label">Project scope</p>
+              <h4>Prototype functionality</h4>
               <ul className="trust-list">
                 {certifications.map((item) => (
                   <li key={item}>{t(item)}</li>
@@ -1921,19 +1727,14 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             </article>
           </div>
 
-          <div className="logo-wall">
-            {partnerLogos.map((logo) => (
-              <span key={logo} className="logo-chip">{t(logo)}</span>
-            ))}
-          </div>
         </section>
 
         <section className="industries-section" id="industries">
           <div className="section-heading">
-            <span className="badge neutral">{t("Industries served")}</span>
-            <h3>{t("Show businesses that the network is built for real commercial movement")}</h3>
+            <span className="badge neutral">Example cargo categories</span>
+            <h3>Possible shipment examples for the demo</h3>
             <p>
-              {t("Clear industry targeting helps B2B buyers quickly decide whether the logistics platform fits their dispatch patterns and cargo needs.")}
+              These examples help demonstrate the interface. They are not confirmed services or active customer industries.
             </p>
           </div>
 
@@ -1941,7 +1742,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             {serviceIndustries.map((industry) => (
               <article key={industry} className="industry-card">
                 <strong>{t(industry)}</strong>
-                <p>{t("Supported through flexible truck options, route discovery, and structured booking flows.")}</p>
+                <p>Example cargo context in the project demo; no industry-specific service network is connected.</p>
               </article>
             ))}
           </div>
@@ -1950,9 +1751,9 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
         <section className="about-section" id="about">
           <div className="section-heading">
             <span className="badge neutral">{t("About company")}</span>
-            <h3>{t("A logistics website should explain the company behind the booking flow")}</h3>
+            <h3>A project built to explore a clearer booking flow</h3>
             <p>
-              {t("This section adds a more formal company story so the site feels like a serious logistics business, not just a booking interface.")}
+              TruckLink is a software project and deployed demo. It has not yet been validated with customers or transport owners.
             </p>
           </div>
 
@@ -1970,9 +1771,9 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           <div className="owner-section-heading">
             <div className="section-heading">
               <span className="badge warm">For transport owners</span>
-              <h3>Bring more trucks onto the platform with a clearer business pitch.</h3>
+              <h3>Explore the truck owner experience.</h3>
               <p>
-                Serious owners care about consistent demand, faster quotes, stronger trust, and less wasted time. This section makes that value explicit.
+                The owner account demonstrates how a fleet could add truck listings and manage booking requests. There is no live customer demand or owner network at this stage.
               </p>
             </div>
             <button
@@ -1986,8 +1787,8 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
           <div className="owner-grid">
             <article className="owner-showcase-card">
-              <p className="booking-label">Owner growth snapshot</p>
-              <h4>High-intent loads, better visibility, cleaner operations.</h4>
+              <p className="booking-label">Owner demo</p>
+              <h4>Tools included in the project</h4>
               <div className="owner-signal-list">
                 {ownerSignals.map((signal) => (
                   <div key={signal.label} className="owner-signal-item">
@@ -2014,15 +1815,13 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             <span className="badge warm">Security first</span>
             <h3>Trust and protection should be part of the logistics experience</h3>
             <p>
-              Since security is one of your main focus areas, the product can
-              be built around verified providers, secure authentication,
-              protected booking records, and fraud-resistant review systems.
+              This project demonstrates account authentication and role-specific screens. It has not had a security audit or real-world provider verification process.
             </p>
             <ul>
-              <li>Verified truck owner onboarding and KYC checks</li>
-              <li>Customer and provider role-based access control</li>
-              <li>Booking history with traceable status updates</li>
-              <li>Review moderation and suspicious activity flags</li>
+              <li>Customer and owner account roles</li>
+              <li>JWT-based authentication and authenticator MFA support</li>
+              <li>Booking records with status updates</li>
+              <li>Reviews for completed bookings</li>
             </ul>
           </article>
 
@@ -2032,27 +1831,19 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             <ul>
               <li>Live map route estimation and location-aware pricing</li>
               <li>AI-based truck recommendations from shipment inputs</li>
-              <li>Provider dashboards with availability management</li>
-              <li>Booking status tracking and payment integration</li>
+              <li>GPS-connected shipment tracking</li>
+              <li>Online payments and an operator verification workflow</li>
             </ul>
           </article>
         </section>
 
         <section className="reviews-section" id="reviews">
           <div className="section-heading narrow">
-            <span className="badge neutral">Social proof</span>
-            <h3>The product should feel reliable before anyone books</h3>
+            <span className="badge neutral">Current project stage</span>
+            <h3>No customer or transport owner testimonials yet</h3>
+            <p>TruckLink is currently a deployed project demo and has not onboarded a client or carrier. This section will show real feedback only after users have tried the product.</p>
           </div>
 
-          <div className="testimonial-grid">
-            {testimonials.map((item) => (
-              <article key={item.name} className="testimonial-card">
-                <p>"{item.quote}"</p>
-                <strong>{item.name}</strong>
-                <span>{item.role}</span>
-              </article>
-            ))}
-          </div>
         </section>
 
         <section className="contact-section" id="contact">
@@ -2060,73 +1851,22 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             <article className="contact-card">
               <div className="section-heading">
                 <span className="badge warm">{t("Contact and quote")}</span>
-                <h3>{t("Make it easy for visitors to request business immediately")}</h3>
+                <h3>Contact details for this project</h3>
                 <p>
-                  {t("Prominent contact options help logistics buyers move from browsing into real conversations faster, especially on mobile and during urgent shipment planning.")}
+                  This demo does not yet have a connected inquiry form or verified business contact channel. Add your preferred project contact details here when you are ready to share them.
                 </p>
               </div>
 
-              <div className="contact-channel-grid">
-                {contactChannels.map((item) => (
-                  <div key={item.label} className="contact-channel-card">
-                    <span>{t(item.label)}</span>
-                    <strong>{item.value}</strong>
-                  </div>
-                ))}
-              </div>
+              <p className="project-contact-note">For now, use the project demo to explore the customer and owner flows.</p>
             </article>
 
             <article className="contact-form-card">
-              <p className="booking-label">{t("Quick inquiry")}</p>
-              <h4>{t("Get a quote, book a shipment, or talk to our team")}</h4>
-              <form className="contact-form" onSubmit={handleContactSubmit}>
-                <div className="contact-form-grid">
-                  <label className="field-group">
-                    <span>{t("Full name")}</span>
-                    <input type="text" placeholder={t("Enter your name")} required />
-                  </label>
-                  <label className="field-group">
-                    <span>{t("Company name")}</span>
-                    <input type="text" placeholder={t("Enter company name")} />
-                  </label>
-                  <label className="field-group">
-                    <span>{t("Phone number")}</span>
-                    <input type="tel" placeholder={t("Enter your phone number")} required />
-                  </label>
-                  <label className="field-group">
-                    <span>{t("Email address")}</span>
-                    <input type="email" placeholder={t("Enter your email")} required />
-                  </label>
-                  <label className="field-group">
-                    <span>{t("Request type")}</span>
-                    <select defaultValue="">
-                      <option value="" disabled>{t("Select request type")}</option>
-                      <option>{t("Get a Quote")}</option>
-                      <option>{t("Book a Shipment")}</option>
-                      <option>{t("Talk to Our Team")}</option>
-                    </select>
-                  </label>
-                  <label className="field-group">
-                    <span>{t("Route or requirement")}</span>
-                    <input type="text" placeholder={t("Example: Delhi to Jaipur, cold chain load")} />
-                  </label>
-                </div>
-                <label className="field-group">
-                  <span>{t("Message")}</span>
-                  <textarea rows={4} placeholder={t("Share shipment details, timeline, cargo type, or support request")} />
-                </label>
-                <div className="tracking-actions">
-                  <button type="submit" className="btn btn-primary">{t("Get a Quote")}</button>
-                  <button type="button" className="btn btn-outline" onClick={() => goToHash("/truck-map", { flow: "Instant booking" })}>
-                    {t("Book a Shipment")}
-                  </button>
-                </div>
-                {contactSubmitted && (
-                  <p className="form-message">
-                    {t("Thanks. Your inquiry has been noted and the team can follow up through phone, email, or WhatsApp.")}
-                  </p>
-                )}
-              </form>
+              <p className="booking-label">Explore the project</p>
+              <h4>Try the customer or truck owner demo flow</h4>
+              <div className="tracking-actions">
+                <button type="button" className="btn btn-primary" onClick={() => goToHash("/truck-map", { flow: "Scheduled booking" })}>Explore truck search</button>
+                <button type="button" className="btn btn-outline" onClick={() => goToHash("/auth", { role: "owner", mode: "signup" })}>Explore owner signup</button>
+              </div>
             </article>
           </div>
         </section>
@@ -2141,7 +1881,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               <p className="brand-subtitle">{t("Logistics")}</p>
             </div>
           </div>
-          <p>{t("Professional truck booking, shipment support, and logistics coordination for businesses moving freight across India.")}</p>
+          <p>TruckLink is a deployed project demo for exploring truck search, booking requests, and separate customer and owner account flows.</p>
         </div>
 
         <div className="footer-links">
@@ -2200,12 +1940,6 @@ function MapSelectionPage({ flow, theme, onToggleTheme, language, onLanguageChan
     setSelectedCity(city);
     setCityQuery(city);
     setError("");
-
-    goToHash("/truck-finder", {
-      flow,
-      state: selectedState,
-      city,
-    });
   }
 
   useEffect(() => {
@@ -2563,11 +2297,9 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
         <section className="finder-hero">
           <div className="section-heading">
             <span className="badge neutral">Dedicated booking page</span>
-            <h3>Compare destination, pricing, service type, and trust signals in one place</h3>
+            <h3>Explore truck search with sample listings</h3>
             <p>
-              This page now holds all of the truck finder logic so the homepage
-              stays minimal while users still get a full search experience after
-              choosing a booking flow.
+              Listings, routes, prices, ratings, and availability in this project are demonstration data. They do not confirm a real transport provider or offer.
             </p>
           </div>
         </section>
@@ -2577,7 +2309,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
             <aside className="finder-panel">
               <div className="finder-heading">
                 <h4>Find the right truck</h4>
-                <p>Filter by route, state, city, service type, budget, and provider trust.</p>
+                <p>Filter the demo listings by route, location, truck type, and budget.</p>
               </div>
 
               <label className="field-group">
@@ -2687,12 +2419,12 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                   checked={verifiedOnly}
                   onChange={(event) => setVerifiedOnly(event.target.checked)}
                 />
-                <span>Show only verified providers</span>
+                <span>Show listings with the demo verification flag</span>
               </label>
 
               <div className="filter-note">
                 <strong>{filteredListings.length}</strong>
-                <span>matching trucks available</span>
+              <span>sample listings match</span>
               </div>
             </aside>
 
@@ -2728,7 +2460,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                               : "status-pill pending"
                           }
                         >
-                          {listing.verified ? "Verified owner" : "Basic profile"}
+                          {listing.verified ? "Demo verification flag" : "Sample profile"}
                         </span>
                         <span className="status-pill neutral-pill">
                           {getEtaLabel(listing.basePrice, flow)}
@@ -2755,12 +2487,12 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                       <div className="price-block">
                         <span>Estimated fare</span>
                         <strong>{formatPrice(listing.basePrice)}</strong>
-                        <small>Fuel and driver included. Toll billed separately.</small>
+                        <small>Sample price only; real pricing and inclusions are not validated.</small>
                       </div>
 
                       <div className="rating-block">
                         <strong>{listing.rating}/5</strong>
-                        <span>{listing.reviewCount} verified reviews</span>
+                        <span>{listing.reviewCount} sample reviews</span>
                         <button
                           type="button"
                           className="btn btn-outline small"
@@ -2773,7 +2505,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
 
                     <div className="listing-actions">
                       <span className="availability-pill">
-                        {listing.availability ? "Available" : "Booked"}
+                        {listing.availability ? "Available in demo data" : "Unavailable in demo data"}
                       </span>
                       <button
                         type="button"
@@ -2847,40 +2579,40 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
 
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData);
-    const currentUser = JSON.parse(window.localStorage.getItem("user") || "null");
-    const confirmation = {
-      ...draft,
-      ...data,
-      bookingReference: `TL-${Date.now().toString().slice(-6)}`,
-      customerEmail: currentUser?.email || "",
-      quotedPrice: draft.basePrice + Math.round((Number(data.weight) || 0) * 18),
-      estimatedPickup: getEtaLabel(draft.basePrice, draft.flow),
-      status: "Awaiting carrier confirmation",
-      bookingSaved: false,
-      emailSent: false,
-    };
-
     try {
-      if (window.localStorage.getItem("token")) {
-        try {
-          const response = await bookingAPI.createBooking({
-            truckId: draft.truckId,
-            pickupLocation: data.pickupLocation,
-            deliveryLocation: data.deliveryLocation,
-            cargoType: data.cargoType,
-            weight: `${data.weight} tons`,
-            pickupDate: data.pickupDate,
-            specialInstructions: data.specialInstructions,
-          });
-          confirmation.bookingSaved = true;
-          confirmation.bookingReference = response.data.booking?.bookingReference || confirmation.bookingReference;
-          confirmation.emailSent = response.data.email?.sent === true;
-          confirmation.emailReason = response.data.email?.reason || "";
-          confirmation.customerEmail = response.data.email?.recipient || confirmation.customerEmail;
-        } catch (apiError) {
-          console.error("Booking API fallback used:", apiError);
-        }
+      if (!window.localStorage.getItem("token")) {
+        goToHash("/auth", { role: "user", mode: "login", redirect: "/booking" });
+        return;
       }
+
+      const response = await bookingAPI.createBooking({
+        truckId: draft.truckId,
+        pickupLocation: data.pickupLocation,
+        deliveryLocation: data.deliveryLocation,
+        cargoType: data.cargoType,
+        weight: `${data.weight} tons`,
+        contactPhone: data.phone,
+        pickupDate: data.pickupDate,
+        specialInstructions: data.specialInstructions,
+      });
+      const savedBooking = response.data.booking;
+      if (!savedBooking?._id || !savedBooking.bookingReference) {
+        throw new Error("The server did not return a saved booking record.");
+      }
+
+      const confirmation = {
+        ...draft,
+        ...data,
+        bookingId: savedBooking._id,
+        bookingReference: savedBooking.bookingReference,
+        customerEmail: response.data.email?.recipient || "",
+        quotedPrice: savedBooking.price,
+        estimatedPickup: "To be confirmed by the transport owner",
+        status: "Request received; awaiting carrier confirmation",
+        bookingSaved: true,
+        emailSent: response.data.email?.sent === true,
+        emailReason: response.data.email?.reason || "",
+      };
 
       window.sessionStorage.setItem(
         bookingStorageKeys.confirmation,
@@ -2889,7 +2621,7 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
       goToHash("/booking-confirmation");
     } catch (error) {
       console.error("Error creating booking:", error);
-      setSubmitError("We could not save the booking right now. Please try again.");
+      setSubmitError(error.response?.data?.message || error.message || "We could not save the booking right now. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -2906,7 +2638,7 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
         </div>
         <div className="subpage-copy">
           <p className="eyebrow">Booking form</p>
-          <h1>Confirm your load details and reserve this truck.</h1>
+          <h1>Enter shipment details and send a booking request.</h1>
         </div>
       </header>
 
@@ -2917,10 +2649,11 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
           <p>{draft.route}</p>
           <div className="booking-summary-list">
             <div><strong>Provider</strong><span>{draft.providerName}</span></div>
-            <div><strong>Quoted base fare</strong><span>{formatPrice(draft.basePrice)}</span></div>
+            <div><strong>Sample base price</strong><span>{formatPrice(draft.basePrice)}</span></div>
             <div><strong>Pickup city</strong><span>{draft.city || "Flexible"}</span></div>
-            <div><strong>Trust score</strong><span>{draft.rating}/5 from {draft.reviewCount} reviews</span></div>
+              <div><strong>Demo rating</strong><span>{draft.rating}/5 from {draft.reviewCount} sample reviews</span></div>
           </div>
+          <p className="booking-price-note">Demo estimate only. Pricing has not been validated with a transport provider.</p>
         </aside>
 
         <section className="booking-form-card">
@@ -2944,7 +2677,7 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
               </label>
               <label className="field-group">
                 <span>Pickup date</span>
-                <input type="date" name="pickupDate" required />
+                <input type="date" name="pickupDate" min={new Date().toISOString().split("T")[0]} required />
               </label>
               <label className="field-group">
                 <span>Contact phone</span>
@@ -2964,7 +2697,7 @@ function BookingPage({ theme, onToggleTheme, t, onToggleLanguage, language }) {
                 Keep comparing
               </button>
               <button type="submit" className="btn btn-primary" disabled={submitting}>
-                {submitting ? "Saving booking..." : "Confirm booking"}
+                {submitting ? "Saving request..." : "Send booking request"}
               </button>
             </div>
           </form>
@@ -3043,7 +2776,7 @@ function BookingConfirmationPage({ theme, onToggleTheme, language }) {
         </div>
         <div className="subpage-copy">
           <p className="eyebrow">Booking confirmation</p>
-          <h1>Your truck request has been queued for confirmation.</h1>
+          <h1>Your booking request was saved.</h1>
         </div>
       </header>
 
@@ -3054,9 +2787,9 @@ function BookingConfirmationPage({ theme, onToggleTheme, language }) {
           <h3>{confirmation.truckType} from {confirmation.providerName}</h3>
           <p>{confirmation.status}</p>
           {confirmation.emailSent ? (
-            <p className="confirmation-email-note">Confirmation sent to {confirmation.customerEmail}.</p>
+            <p className="confirmation-email-note">Booking request receipt sent to {confirmation.customerEmail}. A transport owner still needs to confirm availability.</p>
           ) : (
-            <p className="confirmation-email-note">{confirmation.bookingSaved ? (confirmation.emailReason === "not_configured" ? "Booking saved. Add SMTP settings on the server to email this receipt." : "Booking saved, but the confirmation email could not be sent. Please download your receipt below.") : "Booking receipt is ready. The request could not be saved to the server, so no email was sent."}</p>
+            <p className="confirmation-email-note">Booking request saved. {confirmation.emailReason === "not_configured" ? "Email delivery is not configured for this project." : "A confirmation email was not sent; you can download a local receipt below."}</p>
           )}
         </section>
 
@@ -3074,9 +2807,9 @@ function BookingConfirmationPage({ theme, onToggleTheme, language }) {
             <h4>Pricing and timing</h4>
             <div className="booking-summary-list">
               <div><strong>Estimated total</strong><span>{formatPrice(confirmation.quotedPrice)}</span></div>
-              <div><strong>Pickup ETA</strong><span>{confirmation.estimatedPickup}</span></div>
+              <div><strong>Pickup timing</strong><span>To be confirmed by the transport owner</span></div>
               <div><strong>Flow</strong><span>{confirmation.flow}</span></div>
-              <div><strong>Support</strong><span>Carrier callback within 15 minutes</span></div>
+                  <div><strong>Next step</strong><span>The carrier must confirm availability</span></div>
             </div>
           </article>
         </section>
@@ -3174,6 +2907,15 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
     } catch (err) {
       console.error('Error updating booking:', err);
       alert('Error updating booking status.');
+    }
+  };
+
+  const handleToggleTruckAvailability = async (truck) => {
+    try {
+      await ownerAPI.updateTruckAvailability(truck._id, !truck.availability);
+      await fetchDashboardData();
+    } catch (err) {
+      window.alert(err.response?.data?.message || 'Could not update truck availability.');
     }
   };
 
@@ -3380,6 +3122,13 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
                         <p><strong>{t("Features")}:</strong> {truck.features.join(', ')}</p>
                       )}
                     </div>
+                    <button
+                      type="button"
+                      className="btn btn-outline small"
+                      onClick={() => handleToggleTruckAvailability(truck)}
+                    >
+                      {truck.availability ? 'Mark unavailable' : 'Mark available'}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -3409,6 +3158,7 @@ function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, o
                     <div className="customer-info">
                       <strong>{booking.customer?.name}</strong>
                       <small>{booking.customer?.email}</small>
+                      {booking.contactPhone && <small>{booking.contactPhone}</small>}
                     </div>
                     <div>{booking.truck?.truckNumber}</div>
                     <small>{booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</small>

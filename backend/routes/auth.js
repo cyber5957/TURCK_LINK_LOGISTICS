@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'local-development-only-not-for-deployment';
 const ACCESS_TOKEN_EXPIRES = '15m';
 const REFRESH_TOKEN_EXPIRES = '7d';
 const MFA_TOKEN_EXPIRES = '5m';
@@ -16,6 +16,7 @@ const createToken = (payload, expiresIn) => jwt.sign(payload, JWT_SECRET, { expi
 const createAccessToken = (user) => createToken({ id: user._id, role: user.role, type: 'access' }, ACCESS_TOKEN_EXPIRES);
 const createRefreshToken = (user) => createToken({ id: user._id, type: 'refresh' }, REFRESH_TOKEN_EXPIRES);
 const createMfaToken = (user) => createToken({ id: user._id, type: 'mfa' }, MFA_TOKEN_EXPIRES);
+const createMfaSetupToken = (user) => createToken({ id: user._id, type: 'mfa_setup' }, MFA_TOKEN_EXPIRES);
 
 const saveRefreshToken = async (user, token) => {
   const hashed = await bcrypt.hash(token, 10);
@@ -98,17 +99,13 @@ router.post('/signup', async (req, res) => {
     });
     await user.save();
 
-    const accessToken = createAccessToken(user);
-    const refreshToken = createRefreshToken(user);
-    await saveRefreshToken(user, refreshToken);
-    setRefreshCookie(res, refreshToken);
-
     res.status(201).json({
-      token: accessToken,
-      user: userPayload(user),
+      mfaRequired: true,
+      mfaEnrollment: true,
+      mfaToken: createMfaSetupToken(user),
       mfaSecret: secret.base32,
       mfaOtpAuthUrl: secret.otpauth_url,
-      message: 'Save this MFA secret in your authenticator app for future logins.',
+      message: 'Set up your authenticator app and verify a code to finish creating your account.',
     });
   } catch (err) {
     console.error('Signup failed:', err);
@@ -124,9 +121,10 @@ router.post('/signup', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body || {};
   try {
-    const user = await User.findOne({ email });
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -134,17 +132,9 @@ router.post('/login', async (req, res) => {
 
     if (user.mfaEnabled) {
       const mfaToken = createMfaToken(user);
-      const mfaOtpAuthUrl = speakeasy.otpauthURL({
-        secret: user.mfaSecret,
-        label: `TruckLink (${user.email})`,
-        encoding: 'base32',
-      });
-
       return res.status(200).json({
         mfaRequired: true,
         mfaToken,
-        mfaSecret: user.mfaSecret,
-        mfaOtpAuthUrl,
       });
     }
 
@@ -167,12 +157,12 @@ router.post('/verify-mfa', async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    if (decoded.type !== 'mfa') {
+    if (!['mfa', 'mfa_setup'].includes(decoded.type)) {
       return res.status(401).json({ message: 'Invalid MFA token' });
     }
 
     const user = await User.findById(decoded.id);
-    if (!user || !user.mfaEnabled || !user.mfaSecret) {
+    if (!user || !user.mfaSecret || (decoded.type === 'mfa' && !user.mfaEnabled)) {
       return res.status(401).json({ message: 'MFA is not configured for this user' });
     }
 
@@ -185,6 +175,11 @@ router.post('/verify-mfa', async (req, res) => {
 
     if (!verified) {
       return res.status(400).json({ message: 'Invalid MFA code' });
+    }
+
+    if (decoded.type === 'mfa_setup') {
+      user.mfaEnabled = true;
+      await user.save();
     }
 
     const accessToken = createAccessToken(user);

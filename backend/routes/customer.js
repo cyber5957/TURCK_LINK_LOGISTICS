@@ -1,13 +1,14 @@
 const express = require('express');
-const { auth } = require('../middleware/auth');
+const { auth, customerAuth } = require('../middleware/auth');
 const User = require('../models/User');
 const Booking = require('../models/Booking');
+const Truck = require('../models/Truck');
 const Review = require('../models/Review');
 
 const router = express.Router();
 
 // Customer dashboard
-router.get('/dashboard', auth, async (req, res) => {
+router.get('/dashboard', auth, customerAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     const bookings = await Booking.find({ customer: req.user.id })
@@ -36,7 +37,7 @@ router.get('/dashboard', auth, async (req, res) => {
 });
 
 // Get customer bookings
-router.get('/bookings', auth, async (req, res) => {
+router.get('/bookings', auth, customerAuth, async (req, res) => {
   try {
     const bookings = await Booking.find({ customer: req.user.id })
       .populate('truck', 'truckNumber truckType capacity owner')
@@ -50,7 +51,7 @@ router.get('/bookings', auth, async (req, res) => {
 });
 
 // Update customer profile
-router.put('/profile', auth, async (req, res) => {
+router.put('/profile', auth, customerAuth, async (req, res) => {
   const { name, phone } = req.body;
   try {
     const user = await User.findByIdAndUpdate(
@@ -69,8 +70,12 @@ router.put('/profile', auth, async (req, res) => {
 });
 
 // Add review for completed booking
-router.post('/reviews', auth, async (req, res) => {
+router.post('/reviews', auth, customerAuth, async (req, res) => {
   const { bookingId, rating, comment } = req.body;
+  const numericRating = Number(rating);
+  if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5 || typeof comment !== 'string' || !comment.trim()) {
+    return res.status(400).json({ message: 'Provide a rating from 1 to 5 and a review comment.' });
+  }
   try {
     // Verify booking belongs to user and is completed
     const booking = await Booking.findOne({
@@ -93,11 +98,18 @@ router.post('/reviews', auth, async (req, res) => {
       booking: bookingId,
       customer: req.user.id,
       truck: booking.truck,
-      rating,
-      comment
+      rating: numericRating,
+      comment: comment.trim()
     });
 
     await review.save();
+
+    const reviews = await Review.find({ truck: booking.truck }).select('rating').lean();
+    const averageRating = reviews.reduce((sum, item) => sum + item.rating, 0) / reviews.length;
+    await Truck.findByIdAndUpdate(booking.truck, {
+      rating: Math.round(averageRating * 10) / 10,
+      reviewCount: reviews.length,
+    });
 
     res.status(201).json({ message: 'Review added successfully', review });
   } catch (err) {
@@ -106,7 +118,7 @@ router.post('/reviews', auth, async (req, res) => {
 });
 
 // Cancel booking
-router.put('/bookings/:id/cancel', auth, async (req, res) => {
+router.put('/bookings/:id/cancel', auth, customerAuth, async (req, res) => {
   try {
     const booking = await Booking.findOne({
       _id: req.params.id,
@@ -128,6 +140,9 @@ router.put('/bookings/:id/cancel', auth, async (req, res) => {
     });
 
     await booking.save();
+
+    // A cancelled reservation releases the demo truck back into availability.
+    await Truck.findByIdAndUpdate(booking.truck, { availability: true });
 
     res.json({ message: 'Booking cancelled successfully', booking });
   } catch (err) {
