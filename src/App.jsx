@@ -3138,17 +3138,18 @@ export default function App() {
     setLanguage((currentLang) => (currentLang === "en" ? "hi" : "en"));
   }
 
-  async function handleLogout() {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error("Logout request could not reach the backend:", error.message);
-    } finally {
-      window.localStorage.removeItem("token");
-      window.localStorage.removeItem("user");
-      setCurrentUser(null);
-      goToHash("/");
-    }
+  function handleLogout() {
+    const logoutRequest = authAPI.logout();
+    window.localStorage.removeItem("token");
+    window.localStorage.removeItem("user");
+    window.sessionStorage.setItem(introStorageKey, "true");
+    setCurrentUser(null);
+    setShowIntro(false);
+    goToHash("/");
+
+    logoutRequest.catch((error) => {
+      console.error("Could not revoke the server session during logout:", error.message);
+    });
   }
 
   function dismissIntro() {
