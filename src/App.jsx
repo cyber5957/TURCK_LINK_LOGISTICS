@@ -1,30 +1,37 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
 import translations from "./translations";
-import { authAPI, truckAPI, bookingAPI, ownerAPI, customerAPI } from "./api";
-import introVideo from "../first page .mp4";
-import introAudio from "../forza_horizon_5_menu.mp3";
+import { authAPI, truckAPI, bookingAPI } from "./api";
+import introAudio from "./assets/media/trucklink-intro.mp3";
+import introVideo from "./assets/media/trucklink-intro.mp4";
+
+const OwnerDashboard = lazy(() => import("./pages/Dashboards").then((module) => ({
+  default: module.OwnerDashboard,
+})));
+const CustomerDashboard = lazy(() => import("./pages/Dashboards").then((module) => ({
+  default: module.CustomerDashboard,
+})));
+
+const heroEssentials = [
+  {
+    title: "Flexible route planning",
+    text: "Choose pickup and delivery locations from an extensive India-wide city list.",
+  },
+  {
+    title: "Streamlined booking requests",
+    text: "Share cargo, route, and pickup details through one guided booking flow.",
+  },
+  {
+    title: "Dedicated customer and carrier portals",
+    text: "Manage shipment requests and fleet listings in purpose-built workspaces.",
+  },
+];
 
 const services = [
   "Open truck",
   "Container",
   "Cold chain",
   "Express delivery",
-];
-
-const heroEssentials = [
-  {
-    title: "Location selector demo",
-    text: "Explore sample Indian state and city choices in the booking flow.",
-  },
-  {
-    title: "Booking request flow",
-    text: "Review a truck listing and submit a request using the project demo data.",
-  },
-  {
-    title: "Two account roles",
-    text: "Explore customer and owner screens. Provider verification here is a demo flag, not a real KYC service.",
-  },
 ];
 
 const locationCatalog = [
@@ -186,32 +193,37 @@ function SearchableSelector({
   options,
   onSelect,
   emptyMessage,
+  showResults = true,
+  disabled = false,
 }) {
   return (
-    <div className="field-group searchable-field">
+    <div className={`field-group searchable-field${disabled ? " is-disabled" : ""}`}>
       <span>{label}</span>
       <input
         type="text"
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
         placeholder={placeholder}
+        disabled={disabled}
       />
-      <div className="search-results" role="listbox" aria-label={label}>
-        {options.length > 0 ? (
-          options.map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={value === option ? "search-option active" : "search-option"}
-              onClick={() => onSelect(option)}
-            >
-              {option}
-            </button>
-          ))
-        ) : (
-          <div className="search-empty">{emptyMessage}</div>
-        )}
-      </div>
+      {showResults && (
+        <div className="search-results" role="listbox" aria-label={label}>
+          {options.length > 0 ? (
+            options.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={value === option ? "search-option active" : "search-option"}
+                onClick={() => onSelect(option)}
+              >
+                {option}
+              </button>
+            ))
+          ) : (
+            <div className="search-empty">{emptyMessage}</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -219,6 +231,10 @@ function SearchableSelector({
 function IntroOverlay({ onEnter }) {
   const audioRef = useRef(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [shouldLoadVideo] = useState(() => (
+    !window.matchMedia("(max-width: 760px), (prefers-reduced-motion: reduce)").matches
+    && !navigator.connection?.saveData
+  ));
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -246,17 +262,19 @@ function IntroOverlay({ onEnter }) {
 
   return (
     <section className="intro-overlay" aria-label="TruckLink intro">
-      <video
-        className="intro-video"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-      >
-        <source src={introVideo} type="video/mp4" />
-      </video>
-      <audio ref={audioRef} autoPlay loop preload="auto">
+      {shouldLoadVideo && (
+        <video
+          className="intro-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+        >
+          <source src={introVideo} type="video/mp4" />
+        </video>
+      )}
+      <audio ref={audioRef} loop preload="none">
         <source src={introAudio} type="audio/mpeg" />
       </audio>
       <div className="intro-scrim" />
@@ -340,23 +358,23 @@ function MfaQrCode({ value }) {
 const features = [
   {
     title: "Open truck",
-    description: "One of the truck type options represented in the search and owner listing flows.",
-    supporting: "Sample category in this project demo.",
+    description: "A flexible option for general cargo and regional deliveries.",
+    supporting: "Flexible freight capacity",
   },
   {
     title: "Container",
-    description: "A selectable truck category for creating and filtering demo listings.",
-    supporting: "Sample category in this project demo.",
+    description: "Protected transport for packaged goods and consolidated loads.",
+    supporting: "Protected cargo transport",
   },
   {
     title: "Cold chain",
-    description: "A selectable truck category shown in the project booking flow.",
-    supporting: "Sample category in this project demo.",
+    description: "Temperature-controlled transport for sensitive goods.",
+    supporting: "Temperature-sensitive freight",
   },
   {
     title: "Express delivery",
-    description: "A selectable truck category in the project data model.",
-    supporting: "Sample category in this project demo.",
+    description: "Plan time-sensitive shipments around pickup requirements.",
+    supporting: "Time-sensitive delivery",
   },
 ];
 
@@ -368,38 +386,38 @@ const steps = [
   },
   {
     number: "02",
-    title: "Compare demo listings",
-    text: "Review truck type, sample pricing, ratings, and listing details in one flow.",
+    title: "Review truck options",
+    text: "Compare truck types, pricing, ratings, and listing details in one flow.",
   },
   {
     number: "03",
     title: "Submit a booking request",
-    text: "Save a request in the demo and wait for a transport owner to confirm availability.",
+    text: "Share your shipment details and manage the request through your account.",
   },
 ];
 
 const bookingOptions = [
   {
     title: "Instant booking",
-    text: "Explore the demo truck search flow for a shipment request.",
-    meta: "Demo flow",
+    text: "Create a shipment request and review available truck options.",
+    meta: "Quick booking",
   },
   {
     title: "Scheduled booking",
-    text: "Explore the same truck search and booking form with a scheduled flow label.",
-    meta: "Demo flow",
+    text: "Plan your shipment around a preferred pickup date and route.",
+    meta: "Planned booking",
   },
   {
     title: "Enterprise contract",
-    text: "Recurring contracts and enterprise account support are not implemented in this project.",
-    meta: "Future idea",
+    text: "Recurring contracts and dedicated fleet capacity are opportunities for future expansion.",
+    meta: "Growth opportunity",
   },
 ];
 
 const ownerBenefits = [
   {
     title: "Add a truck listing",
-    text: "Owners can enter vehicle type, capacity, route, base price, and features in the demo.",
+    text: "Manage vehicle type, capacity, routes, pricing, and service details.",
   },
   {
     title: "Review booking requests",
@@ -412,17 +430,17 @@ const ownerBenefits = [
 ];
 
 const ownerSignals = [
-  { label: "Current project stage", value: "Deployed demo project; no customers or transport owners onboarded yet" },
-  { label: "Owner tools in this demo", value: "Add truck listings and view booking requests" },
+  { label: "Fleet workspace", value: "Truck listings, routes, and pricing" },
+  { label: "Booking management", value: "Review requests and update status" },
 ];
 
 const coverageStats = [
-  { value: `${locationCatalog.length}`, label: "states and union territories in the demo selector" },
+  { value: `${locationCatalog.length}`, label: "states and union territories in the location directory" },
   {
     value: `${locationCatalog.reduce((total, item) => total + item.cities.length, 0)}+`,
-    label: "cities listed in the demo selector",
+    label: "cities available for route planning",
   },
-  { value: "Demo", label: "location data does not confirm truck availability" },
+  { value: "India", label: "location selection for shipment planning" },
 ];
 
 const serviceIndustries = [
@@ -436,32 +454,32 @@ const serviceIndustries = [
 
 const trustSignals = [
   { value: "2", label: "account roles: customer and owner" },
-  { value: "4", label: "truck categories in the demo" },
+  { value: "4", label: "freight categories" },
   { value: "MFA", label: "authenticator-based sign-in support" },
 ];
 
 const certifications = [
-  "Customer and owner account flows",
-  "Booking requests with status updates",
-  "Authenticator app MFA support",
+  "Dedicated customer and carrier workspaces",
+  "Booking requests with account-based status updates",
+  "Authenticator-based multi-factor sign-in",
 ];
 
 const aboutHighlights = [
   {
     title: "Who we are",
-    text: "TruckLink is a software project that demonstrates truck discovery and booking requests for customer and owner accounts.",
+    text: "TruckLink brings shipment discovery, booking requests, and carrier workflows into one digital logistics platform.",
   },
   {
     title: "Mission and values",
-    text: "The project explores clear booking steps, role-based account screens, and useful shipment information.",
+    text: "We make freight decisions clearer with structured shipment details, straightforward booking steps, and account-based updates.",
   },
   {
     title: "Safety and reliability",
-    text: "The demo includes booking records and account authentication. It has no real-world KYC, carrier network, or operational dispatch service.",
+    text: "Role-based access and secure account workflows provide a foundation for transparent logistics coordination.",
   },
   {
-    title: "Company story",
-    text: "TruckLink is a deployed project demo. It has not yet been tested with customers or transport owners.",
+    title: "Our direction",
+    text: "We are building a more connected experience for shippers and transport providers.",
   },
 ];
 
@@ -608,15 +626,31 @@ function goToSection(sectionId) {
 }
 
 function getAssistantWelcomeMessage(pageContext) {
+  if (pageContext === "truck-map") {
+    return "Hi, I am TruckMate. I can help you choose a pickup location and understand the next booking steps.";
+  }
+
   if (pageContext === "truck-finder") {
-    return "I am TruckMate. I can guide you through demo routes, sample prices, and truck options on this page.";
+    return "Hi, I am TruckMate. I can help you compare the truck options and sample prices shown here.";
   }
 
   if (pageContext === "auth") {
-    return "I am TruckMate. I can help you choose between user and owner login or signup.";
+    return "Hi, I am TruckMate. I can help you choose the right sign-in or account setup for customers and fleet owners.";
   }
 
-  return "I am TruckMate. I can guide users through booking, pricing, truck search, and owner onboarding.";
+  if (pageContext === "owner-dashboard") {
+    return "Hi, I am TruckMate. I can point you to fleet setup, booking requests, and owner account access.";
+  }
+
+  if (pageContext === "customer-dashboard") {
+    return "Hi, I am TruckMate. I can help you find your bookings, understand shipment statuses, or start a new booking.";
+  }
+
+  if (pageContext === "booking") {
+    return "Hi, I am TruckMate. I can explain the booking details and what happens after you send a request.";
+  }
+
+  return "Hi, I am TruckMate. I can guide you through booking, truck options, pricing information, and fleet owner access.";
 }
 
 function ThemeToggle({ theme, onToggle, language = "en" }) {
@@ -673,21 +707,29 @@ function getAssistantIntent(message) {
     text.includes("book a truck") ||
     text.includes("book truck") ||
     text.includes("want to book") ||
-    text.includes("booking")
+    text.includes("make a booking") ||
+    text.includes("start a booking") ||
+    text.includes("new shipment") ||
+    text.includes("book a shipment")
   ) {
     return {
-      route: "/truck-finder",
+      route: "/truck-map",
       params: { flow: "Instant booking" },
-      label: "booking page",
+      label: "shipment planner",
     };
   }
 
   if (
-    text.includes("owner") ||
-    text.includes("provider") ||
+    text.includes("truck owner") ||
+    text.includes("fleet owner") ||
+    text.includes("owner signup") ||
+    text.includes("owner sign up") ||
     text.includes("connect my truck") ||
     text.includes("connect truck") ||
-    text.includes("join as owner")
+    text.includes("join as owner") ||
+    text.includes("list my truck") ||
+    text.includes("provider signup") ||
+    text.includes("provider sign up")
   ) {
     return {
       route: "/auth",
@@ -725,12 +767,13 @@ function getAssistantIntent(message) {
     text.includes("find truck") ||
     text.includes("search truck") ||
     text.includes("show trucks") ||
-    text.includes("truck finder")
+    text.includes("truck finder") ||
+    text.includes("truck options")
   ) {
     return {
-      route: "/truck-finder",
+      route: "/truck-map",
       params: { flow: "Scheduled booking" },
-      label: "truck finder page",
+      label: "pickup planner",
     };
   }
 
@@ -741,13 +784,13 @@ function buildAssistantReply(message, pageContext, intent) {
   const text = message.toLowerCase();
 
   if (intent?.label) {
-    return `Taking you to the ${intent.label} now so you can continue faster.`;
+    return `I’ll open the ${intent.label} so you can continue.`;
   }
 
   if (text.includes("book") || text.includes("booking")) {
     return pageContext === "truck-finder"
-      ? "Choose a truck card, review the fare and provider details, then use the booking action. The next step after this can be account login and booking confirmation."
-      : "Start from a booking option on the homepage, then the truck finder page will help compare trucks, pricing, and provider trust before booking.";
+      ? "Review the listed truck, route, and displayed price, then choose its booking action. Listings and prices shown as sample data should be confirmed before making a real shipment decision."
+      : "Choose Book a Shipment to select a pickup location, review matching truck options, and submit a booking request. A request is not confirmed until its status is updated.";
   }
 
   if (
@@ -756,15 +799,7 @@ function buildAssistantReply(message, pageContext, intent) {
     text.includes("fare") ||
     text.includes("cost")
   ) {
-    return "Pricing depends on route, truck type, service type, urgency, and provider profile. On the truck finder page, the budget slider helps narrow options by estimated fare.";
-  }
-
-  if (
-    text.includes("owner") ||
-    text.includes("provider") ||
-    text.includes("connect")
-  ) {
-    return "Truck owners should use the owner access flow on the auth page. From there, we can later connect onboarding, fleet listing, pricing, and availability management.";
+    return "Displayed prices can vary by route, truck type, cargo, and availability. Treat any sample listing prices as illustrative and confirm the final amount with the provider before booking.";
   }
 
   if (
@@ -773,7 +808,15 @@ function buildAssistantReply(message, pageContext, intent) {
     text.includes("safe") ||
     text.includes("review")
   ) {
-    return "The truck finder can filter listings by a verification flag in the demo data. It is not connected to real KYC or provider checks.";
+    return "Some sample listings may display a verification label, but it is demo information and is not proof of a live KYC or provider background check.";
+  }
+
+  if (
+    text.includes("owner") ||
+    text.includes("provider") ||
+    text.includes("connect")
+  ) {
+    return "Choose owner sign up to create a fleet account. Once signed in, the owner dashboard lets you add trucks, manage availability, and review booking requests.";
   }
 
   if (
@@ -782,7 +825,7 @@ function buildAssistantReply(message, pageContext, intent) {
     text.includes("account") ||
     text.includes("auth")
   ) {
-    return "The auth page supports both user and owner access. Users can book and track shipments, while owners can connect their fleet and manage transport leads.";
+    return "The sign-in page separates customer and fleet owner access. Customers manage shipment requests; owners manage fleet listings and booking requests.";
   }
 
   if (
@@ -795,19 +838,33 @@ function buildAssistantReply(message, pageContext, intent) {
     }
 
     if (pageContext === "truck-finder") {
-      return "You are on the truck finder page. Use search, truck type, budget, and demo verification filters to explore sample listings.";
+      return "You are viewing truck options. Review the route and displayed details, and remember that sample listings need confirmation before a real booking.";
     }
 
-    return "You are on the homepage. Start a demo booking flow, then explore sample trucks and project pricing.";
+    if (pageContext === "owner-dashboard") {
+      return "Use Fleet Management to add trucks or update availability, and Bookings to review incoming customer requests.";
+    }
+
+    if (pageContext === "customer-dashboard") {
+      return "Use My Bookings to review shipment details and status. Choose Book a Shipment whenever you need to start a new request.";
+    }
+
+    if (pageContext === "truck-map") {
+      return "Choose a pickup state and city on the map or with search, then continue to review matching truck options.";
+    }
+
+    return "Choose Book a Shipment to select a pickup location, then review the truck options and booking details.";
   }
 
-  return "I can help explain the demo booking flow, sample pricing, owner account, login/signup, or truck finder. Try one of the quick prompts below.";
+  return "I can guide you around the booking flow, explain displayed pricing, or help you find the right account area. Choose a prompt below or ask a question.";
 }
 
 function AssistantWidget({ pageContext }) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const redirectTimeoutRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -825,6 +882,26 @@ function AssistantWidget({ pageContext }) {
       },
     ]);
   }, [pageContext]);
+
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      inputRef.current?.focus();
+    }
+  }, [isOpen, messages]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   useEffect(() => {
     return () => {
@@ -876,7 +953,9 @@ function AssistantWidget({ pageContext }) {
         type="button"
         className="assistant-trigger"
         onClick={() => setIsOpen((current) => !current)}
-        aria-label="Open truck assistant"
+        aria-label={isOpen ? "Close TruckMate assistant" : "Open TruckMate assistant"}
+        aria-expanded={isOpen}
+        aria-controls="truckmate-panel"
       >
         <span className="assistant-truck" aria-hidden="true">
           <span className="assistant-truck-cabin" />
@@ -885,15 +964,23 @@ function AssistantWidget({ pageContext }) {
           <span className="assistant-truck-wheel assistant-truck-wheel-front" />
           <span className="assistant-truck-wheel assistant-truck-wheel-back" />
         </span>
-        <span className="assistant-trigger-text">TruckMate</span>
+        <span className="assistant-trigger-copy">
+          <span className="assistant-trigger-text">TruckMate</span>
+          <span className="assistant-trigger-caption">Guided support</span>
+        </span>
+        <span className="assistant-trigger-status" aria-hidden="true">Ask</span>
       </button>
 
       {isOpen && (
-        <section className="assistant-panel">
+        <section className="assistant-panel" id="truckmate-panel" aria-label="TruckMate guided support">
           <div className="assistant-header">
-            <div>
-              <p className="booking-label">Guided assistant</p>
-              <h3>TruckMate</h3>
+            <div className="assistant-identity">
+              <span className="assistant-avatar" aria-hidden="true">TM</span>
+              <div>
+                <p className="assistant-header-eyebrow">TRUCKLINK SUPPORT</p>
+                <h3>TruckMate</h3>
+                <span className="assistant-header-caption">Guided help for this page</span>
+              </div>
             </div>
             <button
               type="button"
@@ -901,7 +988,7 @@ function AssistantWidget({ pageContext }) {
               onClick={() => setIsOpen(false)}
               aria-label="Close assistant"
             >
-              Close
+              <span aria-hidden="true">×</span>
             </button>
           </div>
 
@@ -915,12 +1002,18 @@ function AssistantWidget({ pageContext }) {
                     : "assistant-bubble assistant-bubble-user"
                 }
               >
+                <span className="assistant-message-author">
+                  {message.role === "assistant" ? "TruckMate" : "You"}
+                </span>
                 <p>{message.text}</p>
               </article>
             ))}
+            <div ref={messagesEndRef} />
           </div>
 
-          <div className="assistant-prompts">
+          <div className="assistant-prompt-area">
+            <p className="assistant-prompt-label">QUICK QUESTIONS</p>
+            <div className="assistant-prompts">
             {assistantPrompts.map((prompt) => (
               <button
                 key={prompt}
@@ -931,6 +1024,7 @@ function AssistantWidget({ pageContext }) {
                 {prompt}
               </button>
             ))}
+            </div>
           </div>
 
           <form
@@ -941,12 +1035,14 @@ function AssistantWidget({ pageContext }) {
             }}
           >
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(event) => setInput(event.target.value)}
               placeholder="Ask about booking, pricing, owner access..."
+              aria-label="Ask TruckMate a question"
             />
-            <button type="submit" className="btn btn-primary assistant-send">
+            <button type="submit" className="btn btn-primary assistant-send" disabled={!input.trim()}>
               Send
             </button>
           </form>
@@ -1054,8 +1150,8 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
   };
 
   return (
-    <div className="page-shell">
-      <header className="subpage-topbar">
+    <div className="page-shell auth-page">
+      <header className="subpage-topbar auth-page-header">
         <div className="subpage-actions">
           <button
             type="button"
@@ -1069,20 +1165,42 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
         </div>
 
         <div className="subpage-copy">
-          <p className="eyebrow">{t("Access portal")}</p>
-          <h1>
-            {isOwner ? t("Owner") : t("User")} {isSignup ? t("signup") : t("login")} {t("for TruckLink Logistics")}
-          </h1>
+          <p className="eyebrow">TRUCKLINK ACCOUNT SECURITY</p>
+          <h1>{isOwner ? "Carrier workspace access" : "Customer workspace access"}</h1>
+          <p className="auth-page-subtitle">
+            {isSignup
+              ? "Create your account with clear, role-based access."
+              : "A dedicated sign-in for your logistics workspace."}
+          </p>
         </div>
       </header>
 
       <main>
         <section className="auth-layout">
           <article className="auth-intro-card">
-            <span className="badge neutral">{t("Role-based access")}</span>
-            <h3>{t("One secure entry point for customers and truck owners")}</h3>
+            <div className="auth-security-visual" aria-hidden="true">
+              <div className="auth-security-orbit auth-security-orbit-outer" />
+              <div className="auth-security-orbit auth-security-orbit-inner" />
+              <div className="auth-security-core">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <path d="M24 5.5 39 11v11.2c0 9.8-6.2 16.5-15 20.3-8.8-3.8-15-10.5-15-20.3V11l15-5.5Z" />
+                  <rect x="17" y="21" width="14" height="11" rx="2.5" />
+                  <path d="M20 21v-3a4 4 0 0 1 8 0v3" />
+                  <circle cx="24" cy="26" r="1.2" />
+                  <path d="M24 27.2v2" />
+                </svg>
+              </div>
+              <span className="auth-security-signal auth-security-signal-one" />
+              <span className="auth-security-signal auth-security-signal-two" />
+              <span className="auth-security-signal auth-security-signal-three" />
+              <span className="auth-security-tag">IDENTITY&nbsp; / &nbsp;ACCESS</span>
+            </div>
+            <span className="auth-trust-kicker">{isOwner ? "CARRIER ACCOUNT ACCESS" : "CUSTOMER ACCOUNT ACCESS"}</span>
+            <h3>{isOwner ? "Your fleet deserves a secure place to operate." : "Your shipments deserve a secure place to manage."}</h3>
             <p>
-              {t("Customers can book and track shipments. Owners can onboard their fleet, manage availability, and respond to transport requests.")}
+              {isOwner
+                ? "Sign in to manage fleet listings and booking requests in your dedicated carrier workspace."
+                : "Sign in to manage shipment requests and review booking updates in your customer workspace."}
             </p>
 
             <div className="auth-role-switch">
@@ -1118,40 +1236,53 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
 
             <div className="auth-benefit-list">
               <div>
-                <strong>{isOwner ? t("Fleet onboarding") : t("Fast booking")}</strong>
-                <span>
-                  {isOwner
-                    ? t("Add trucks, routes, pricing, and service details.")
-                    : t("Compare trucks and move quickly to secure booking.")}
+                <span className="auth-benefit-icon" aria-hidden="true">01</span>
+                <span className="auth-benefit-copy">
+                  <strong>{isOwner ? "Your fleet workspace" : "Your shipment workspace"}</strong>
+                  <span>
+                    {isOwner
+                      ? "Manage truck listings, service details, and availability."
+                      : "Review bookings and keep shipment details together."}
+                  </span>
                 </span>
               </div>
               <div>
-                <strong>{isOwner ? t("Lead management") : t("Trusted providers")}</strong>
-                <span>
-                  {isOwner
-                    ? t("Review requests and manage customer connections.")
-                    : t("Explore sample truck listings and a booking request flow.")}
+                <span className="auth-benefit-icon" aria-hidden="true">02</span>
+                <span className="auth-benefit-copy">
+                  <strong>Access matched to your role</strong>
+                  <span>
+                    {isOwner
+                      ? "Owner accounts open the carrier dashboard."
+                      : "Customer accounts open the shipment dashboard."}
+                  </span>
                 </span>
               </div>
               <div>
-                <strong>{t("Security first")}</strong>
-                <span>
-                  {t("Protected access, role-based accounts, and secure platform activity.")}
+                <span className="auth-benefit-icon auth-benefit-icon-shield" aria-hidden="true">✓</span>
+                <span className="auth-benefit-copy">
+                  <strong>Authenticator verification</strong>
+                  <span>
+                    {isSignup
+                      ? "New accounts set up an authenticator app during registration."
+                      : "If enabled on your account, you’ll confirm sign-in with an authenticator code."}
+                  </span>
                 </span>
               </div>
             </div>
+
+            <p className="auth-security-footnote">
+              Account access is role-based. Use a unique password and keep your authenticator codes private.
+            </p>
           </article>
 
           <article className="auth-form-card">
             <div className="auth-form-header">
-              <p className="booking-label">
-                {isOwner ? t("Portal") : t("Portal")}
-              </p>
-              <h3>{isSignup ? t("Create your account") : t("Welcome back")}</h3>
+              <p className="auth-form-kicker">{isOwner ? "CARRIER PORTAL" : "CUSTOMER PORTAL"}</p>
+              <h3>{isSignup ? t("Create your account") : isOwner ? "Welcome back" : t("Welcome back")}</h3>
               <p>
                 {isSignup
-                  ? t("Create an account to continue into the logistics platform.")
-                  : t("Log in to continue into your logistics dashboard.")}
+                  ? "Set up your account to access your dedicated workspace."
+                  : "Enter your credentials to continue to your workspace."}
               </p>
             </div>
 
@@ -1182,8 +1313,8 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
               </button>
             </div>
 
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {info && <p style={{ color: 'green' }}>{info}</p>}
+            {error && <p className="auth-message auth-message-error" role="alert">{error}</p>}
+            {info && <p className="auth-message auth-message-info" role="status">{info}</p>}
 
             {mfaStep ? (
               <div className="auth-mfa-panel">
@@ -1246,7 +1377,14 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
 
                 <label className="field-group">
                   <span>{t("Password")}</span>
-                  <input type="password" name="password" placeholder={t("Enter your password")} minLength={isSignup ? 8 : undefined} required />
+                  <input
+                    type="password"
+                    name="password"
+                    autoComplete={isSignup ? "new-password" : "current-password"}
+                    placeholder={t("Enter your password")}
+                    minLength={isSignup ? 8 : undefined}
+                    required
+                  />
                 </label>
 
                 {isSignup && (
@@ -1284,6 +1422,12 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
                     ? (isOwner ? t("Create owner account") : t("Create user account"))
                     : (isOwner ? t("Login as owner") : t("Login as user")))}
                 </button>
+                <p className="auth-form-security-note">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.2 16 4.4v4.5c0 4-2.5 6.8-6 8.4-3.5-1.6-6-4.4-6-8.4V4.4l6-2.2Z" /><path d="m7.5 9.8 1.7 1.7 3.5-3.7" /></svg>
+                  {isSignup
+                    ? "Your password is protected with a one-way hash. Authenticator setup follows account creation."
+                    : "Sign-in is protected by your password and, when enabled, an authenticator code."}
+                </p>
               </form>
             )}
 
@@ -1296,15 +1440,60 @@ function AuthPage({ role, mode, theme, onToggleTheme, t, onToggleLanguage, langu
 
 function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, currentUser, onLogout }) {
   const [activeBooking, setActiveBooking] = useState("Instant booking");
+  const [isConversationOpen, setIsConversationOpen] = useState(false);
+  const [conversationTopic, setConversationTopic] = useState("Shipment planning");
+  const [conversationBrief, setConversationBrief] = useState("");
+  const [briefCopyMessage, setBriefCopyMessage] = useState("");
+  const conversationDialogRef = useRef(null);
+
+  useEffect(() => {
+    if (isConversationOpen && conversationDialogRef.current && !conversationDialogRef.current.open) {
+      conversationDialogRef.current.showModal();
+    }
+  }, [isConversationOpen]);
+
+  function closeConversation() {
+    conversationDialogRef.current?.close();
+  }
+
   function handleBookingChoice(title) {
     setActiveBooking(title);
     goToHash("/truck-map", { flow: title });
   }
 
+  function handleConversationBrief(event) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const company = String(formData.get("company") || "").trim();
+    const details = String(formData.get("details") || "").trim();
+
+    setConversationBrief([
+      "TRUCKLINK — CONVERSATION BRIEF",
+      `Topic: ${conversationTopic}`,
+      `Name: ${name}`,
+      `Work email: ${email}`,
+      ...(company ? [`Company: ${company}`] : []),
+      ...(details ? [`What I'd like to discuss: ${details}`] : []),
+    ].join("\n"));
+    setBriefCopyMessage("");
+  }
+
+  async function handleCopyConversationBrief() {
+    try {
+      await navigator.clipboard.writeText(conversationBrief);
+      setBriefCopyMessage("Brief copied. It is ready to paste into your message.");
+    } catch (error) {
+      console.error("Unable to copy conversation brief:", error);
+      setBriefCopyMessage("Copy is unavailable in this browser. Select and copy the brief above.");
+    }
+  }
+
   const heroMetrics = [
-    { value: "2", label: "account types in the project: customer and owner" },
-    { value: "4", label: "truck categories represented in the demo" },
-    { value: "Demo", label: "deployed project; no live marketplace partners yet" },
+    { value: "2", label: "Customer and carrier portals" },
+    { value: "4", label: "Freight categories" },
+    { value: "1", label: "Connected booking workflow" },
   ];
 
   return (
@@ -1352,7 +1541,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           <button
             type="button"
             className="nav-link-button"
-            onClick={() => goToSection("contact")}
+            onClick={() => setIsConversationOpen(true)}
           >
             {t("Contact")}
           </button>
@@ -1370,17 +1559,19 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
         <div className="topbar-controls">
           <button
             type="button"
+            className="btn btn-outline topbar-cta topbar-contact-link"
+            onClick={() => setIsConversationOpen(true)}
+          >
+            {t("Talk to Our Team")}
+          </button>
+          <LanguageToggle language={language} onToggle={onToggleLanguage} />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
+          <button
+            type="button"
             className="btn btn-primary topbar-cta"
             onClick={() => goToHash("/truck-map", { flow: "Instant booking" })}
           >
             {t("Book a Shipment")}
-          </button>
-          <button
-            type="button"
-            className="btn btn-outline topbar-cta"
-            onClick={() => goToSection("contact")}
-          >
-            {t("Talk to Our Team")}
           </button>
           {!currentUser && (
             <button
@@ -1396,20 +1587,18 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               {t("Logout")}
             </button>
           )}
-          <LanguageToggle language={language} onToggle={onToggleLanguage} />
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
       </header>
 
       <main>
         <section className="hero-card">
           <div className="hero-copy">
-              <span className="badge">Truck booking project demo</span>
+            <span className="badge">Freight booking, simplified</span>
             <h2>
-              Explore sample truck listings and a booking request flow.
+              Move freight with confidence—from booking request to delivery updates.
             </h2>
             <p>
-              TruckLink is a deployed project demo that explores how customers and truck owners could manage truck discovery and booking requests in one place. It has not onboarded real customers or transport owners yet.
+              TruckLink brings shipment discovery, booking requests, and account-based status updates together in one streamlined logistics experience.
             </p>
 
             <div className="hero-metric-row" aria-label="Service snapshot">
@@ -1439,16 +1628,10 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               <button
                 type="button"
                 className="btn btn-outline"
-                onClick={() => goToSection("contact")}
+                onClick={() => setIsConversationOpen(true)}
               >
                 {t("Talk to Our Team")}
               </button>
-            </div>
-
-            <div className="service-pills">
-              {services.map((service) => (
-                  <span key={service}>{t(service)}</span>
-              ))}
             </div>
 
             <div className="hero-essentials" aria-label="Core logistics strengths">
@@ -1463,44 +1646,41 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
           <aside className="quote-panel" aria-label="Platform summary">
             <div className="quote-header">
-              <p>Project overview</p>
-              <span>Customer and owner demo flows</span>
+              <div>
+                <p>{t("Shipment workflow")}</p>
+                <span>From shipment details to status updates</span>
+              </div>
+              <span className="shipment-flow-count">3 steps</span>
             </div>
 
-            <div className="quote-route">
-              <div>
-                <strong>{t("Pickup")}</strong>
-                <span>{t("Request created")}</span>
-              </div>
-              <div className="route-line" />
-              <div>
-                <strong>{t("Delivery")}</strong>
-                <span>Booking status updates</span>
-              </div>
+            <div className="shipment-flow" aria-label="Shipment booking steps">
+              {[
+                {
+                  title: "Share shipment details",
+                  detail: "Set pickup, destination, cargo, and date.",
+                },
+                {
+                  title: "Review truck options",
+                  detail: "Compare available trucks for your shipment.",
+                },
+                {
+                  title: "Send a booking request",
+                  detail: "Follow request status from your account.",
+                },
+              ].map((step, index) => (
+                <article className="shipment-flow-step" key={step.title}>
+                  <span className="shipment-flow-index">{`0${index + 1}`}</span>
+                  <div>
+                    <strong>{t(step.title)}</strong>
+                    <p>{t(step.detail)}</p>
+                  </div>
+                </article>
+              ))}
             </div>
 
-            <div className="hero-panel-note">
-              <strong>{t("Faster freight decisions")}</strong>
-              <p>Explore truck categories, search filters, and a booking request flow using project demo data.</p>
-            </div>
-
-            <div className="quote-grid">
-              <div>
-                <span>{t("Coverage")}</span>
-                <strong>Location selector in demo</strong>
-              </div>
-              <div>
-                <span>{t("Truck types")}</span>
-                <strong>{t("Open, container, and cold chain")}</strong>
-              </div>
-              <div>
-                <span>{t("Booking support")}</span>
-                <strong>Instant and scheduled demo paths</strong>
-              </div>
-              <div>
-                <span>{t("Trust layer")}</span>
-                <strong>Provider and review interface</strong>
-              </div>
+            <div className="shipment-flow-note">
+              <span>{t("A request is not a confirmed booking")}</span>
+              <p>Confirmation and status updates follow review of your request.</p>
             </div>
           </aside>
         </section>
@@ -1520,45 +1700,26 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           <div className="tracking-layout">
             <article className="tracking-card">
               <div className="section-heading">
-                <span className="badge neutral">{t("Shipment inquiry")}</span>
-                <h3>Shipment tracking is not connected yet</h3>
+                <span className="badge neutral">Shipment updates</span>
+                <h3>Stay up to date on your shipment</h3>
                 <p>
-                  This project demonstrates booking records and status updates inside its account dashboards. It cannot look up a shipment from a tracking number yet.
+                  Sign in to review booking details and status updates for shipments booked through TruckLink.
                 </p>
               </div>
 
               <button type="button" className="btn btn-primary" onClick={() => goToHash("/auth", { role: "user", mode: "login" })}>
-                Open customer dashboard
+                Sign in to view shipment updates
               </button>
             </article>
-
-            <aside className="tracking-panel">
-              <p className="booking-label">{t("Fallback support")}</p>
-              <h4>Project status</h4>
-              <div className="tracking-support-list">
-                <div>
-                  <span>Marketplace</span>
-                  <strong>No live customers or truck owners onboarded</strong>
-                </div>
-                <div>
-                  <span>Project</span>
-                  <strong>Deployed demo</strong>
-                </div>
-                <div>
-                  <span>Live shipment tracking</span>
-                  <strong>Not implemented</strong>
-                </div>
-              </div>
-            </aside>
           </div>
         </section>
 
         <section className="content-grid" id="services">
           <div className="section-heading">
-            <span className="badge neutral">Truck and cargo examples</span>
-            <h3>Categories represented in the project</h3>
+            <span className="badge neutral">Freight solutions</span>
+            <h3>One platform for a range of shipment needs</h3>
             <p>
-              These cards describe sample use cases for the interface. They are not a list of currently available real-world transport services.
+              Choose the transport category that best fits your cargo, route, and delivery requirements.
             </p>
           </div>
 
@@ -1611,9 +1772,9 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
         <section className="booking-section" id="booking">
           <div className="section-heading">
             <span className="badge neutral">{t("Booking options")}</span>
-            <h3>Explore the booking flows represented in the demo</h3>
+            <h3>A streamlined path from planning to booking</h3>
             <p>
-              Instant and scheduled are labels for the same demo search and booking path. Enterprise contracts are a future idea and are not available in this project.
+              Capture shipment details, review truck options, and submit a booking request through one guided workflow.
             </p>
           </div>
 
@@ -1636,7 +1797,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
                   disabled={option.title === "Enterprise contract"}
                   onClick={() => handleBookingChoice(option.title)}
                 >
-                  {option.title === "Enterprise contract" ? "Not in this demo" : "Open truck finder"}
+                  {option.title === "Enterprise contract" ? "Growth opportunity" : "Explore booking"}
                 </button>
               </article>
             ))}
@@ -1645,21 +1806,20 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           <div className="booking-banner">
             <div>
               <p className="booking-label">Booking support</p>
-              <h4>Each booking choice now opens its own truck finder page with pricing and destination filters</h4>
+              <h4>Every request starts with the shipment details that matter</h4>
             </div>
             <p>
-              This keeps the homepage elegant while still guiding the user into
-              the full booking journey when they are ready.
+              Add your route, cargo, and pickup timing to create a clear request for review.
             </p>
           </div>
         </section>
         <section className="coverage-section" id="coverage">
           <div className="coverage-overview">
             <div className="section-heading wide">
-              <span className="badge neutral">Location selector</span>
-              <h3>Explore the locations available in the demo</h3>
+              <span className="badge neutral">Route planning</span>
+              <h3>Plan routes across India</h3>
               <p>
-                The project includes a state and city selector for exploring the booking flow. This list does not represent confirmed carrier coverage or live truck availability.
+                Select from a broad directory of Indian states and cities. Carrier availability is confirmed as part of the booking process.
               </p>
             </div>
 
@@ -1680,11 +1840,11 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               <div className="coverage-signal-list">
                 <div className="coverage-signal-card">
                   <strong>{t("Best for")}</strong>
-                  <span>Urgent dispatches, planned trips, and repeat transport needs are examples for exploring the interface.</span>
+                  <span>Urgent dispatches, planned trips, and recurring transport requirements.</span>
                 </div>
                 <div className="coverage-signal-card">
                   <strong>{t("Industries")}</strong>
-                  <span>Retail, manufacturing, food, pharma, e-commerce, and packaged goods are sample cargo contexts only.</span>
+                  <span>Retail, manufacturing, food, pharmaceuticals, e-commerce, and packaged goods.</span>
                 </div>
               </div>
               <ul className="coverage-industry-list">
@@ -1699,10 +1859,10 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
         <section className="trust-section" id="trust">
           <div className="section-heading">
-            <span className="badge neutral">Project capabilities</span>
-            <h3>What this project demonstrates</h3>
+            <span className="badge neutral">A trusted foundation</span>
+            <h3>Clear, secure logistics workflows</h3>
             <p>
-              These are implemented software capabilities, not evidence of a live transport network, verified real-world partners, or commercial operating history.
+              Role-based accounts, secure sign-in, and booking status visibility support transparent customer and carrier workflows.
             </p>
           </div>
 
@@ -1717,8 +1877,8 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             </div>
 
             <article className="certification-card">
-              <p className="booking-label">Project scope</p>
-              <h4>Prototype functionality</h4>
+              <p className="booking-label">Platform capabilities</p>
+              <h4>Designed for confident coordination</h4>
               <ul className="trust-list">
                 {certifications.map((item) => (
                   <li key={item}>{t(item)}</li>
@@ -1731,10 +1891,10 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
         <section className="industries-section" id="industries">
           <div className="section-heading">
-            <span className="badge neutral">Example cargo categories</span>
-            <h3>Possible shipment examples for the demo</h3>
+            <span className="badge neutral">Industry applications</span>
+            <h3>Freight workflows for diverse sectors</h3>
             <p>
-              These examples help demonstrate the interface. They are not confirmed services or active customer industries.
+              A flexible booking flow can support the distinct shipment requirements of industries across the supply chain.
             </p>
           </div>
 
@@ -1742,7 +1902,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
             {serviceIndustries.map((industry) => (
               <article key={industry} className="industry-card">
                 <strong>{t(industry)}</strong>
-                <p>Example cargo context in the project demo; no industry-specific service network is connected.</p>
+                <p>Plan shipments around the cargo, route, and pickup requirements of your business.</p>
               </article>
             ))}
           </div>
@@ -1751,9 +1911,9 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
         <section className="about-section" id="about">
           <div className="section-heading">
             <span className="badge neutral">{t("About company")}</span>
-            <h3>A project built to explore a clearer booking flow</h3>
+            <h3>Making freight decisions simpler</h3>
             <p>
-              TruckLink is a software project and deployed demo. It has not yet been validated with customers or transport owners.
+              TruckLink brings shipment discovery, booking coordination, and carrier tools together in a single digital experience.
             </p>
           </div>
 
@@ -1771,9 +1931,9 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           <div className="owner-section-heading">
             <div className="section-heading">
               <span className="badge warm">For transport owners</span>
-              <h3>Explore the truck owner experience.</h3>
+              <h3>Manage your fleet and booking requests.</h3>
               <p>
-                The owner account demonstrates how a fleet could add truck listings and manage booking requests. There is no live customer demand or owner network at this stage.
+                Keep truck listings, route details, pricing, and customer requests organized in one workspace.
               </p>
             </div>
             <button
@@ -1787,8 +1947,8 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
 
           <div className="owner-grid">
             <article className="owner-showcase-card">
-              <p className="booking-label">Owner demo</p>
-              <h4>Tools included in the project</h4>
+              <p className="booking-label">Carrier workspace</p>
+              <h4>Fleet and booking management</h4>
               <div className="owner-signal-list">
                 {ownerSignals.map((signal) => (
                   <div key={signal.label} className="owner-signal-item">
@@ -1813,9 +1973,9 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
         <section className="split-showcase" id="security">
           <article className="dark-panel">
             <span className="badge warm">Security first</span>
-            <h3>Trust and protection should be part of the logistics experience</h3>
+            <h3>Security built into every account workflow</h3>
             <p>
-              This project demonstrates account authentication and role-specific screens. It has not had a security audit or real-world provider verification process.
+              Role-based access and authenticator-based multi-factor sign-in help protect customer and carrier accounts.
             </p>
             <ul>
               <li>Customer and owner account roles</li>
@@ -1826,8 +1986,8 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           </article>
 
           <article className="light-panel">
-            <span className="badge neutral">Future-ready features</span>
-            <h3>Modern additions we can build next</h3>
+            <span className="badge neutral">Growth opportunities</span>
+            <h3>Building toward a more connected supply chain</h3>
             <ul>
               <li>Live map route estimation and location-aware pricing</li>
               <li>AI-based truck recommendations from shipment inputs</li>
@@ -1837,39 +1997,127 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           </article>
         </section>
 
-        <section className="reviews-section" id="reviews">
-          <div className="section-heading narrow">
-            <span className="badge neutral">Current project stage</span>
-            <h3>No customer or transport owner testimonials yet</h3>
-            <p>TruckLink is currently a deployed project demo and has not onboarded a client or carrier. This section will show real feedback only after users have tried the product.</p>
-          </div>
-
-        </section>
-
+        {isConversationOpen && (
+        <dialog
+          ref={conversationDialogRef}
+          className="conversation-dialog"
+          aria-labelledby="conversation-dialog-title"
+          onClose={() => setIsConversationOpen(false)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              closeConversation();
+            }
+          }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closeConversation();
+            }
+          }}
+        >
         <section className="contact-section" id="contact">
-          <div className="contact-layout">
-            <article className="contact-card">
-              <div className="section-heading">
-                <span className="badge warm">{t("Contact and quote")}</span>
-                <h3>Contact details for this project</h3>
-                <p>
-                  This demo does not yet have a connected inquiry form or verified business contact channel. Add your preferred project contact details here when you are ready to share them.
-                </p>
-              </div>
+          <button
+            type="button"
+            className="conversation-close"
+            aria-label="Close contact dialog"
+            onClick={closeConversation}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+          <div className="conversation-heading">
+            <span className="badge warm">Let's talk business</span>
+            <h3 id="conversation-dialog-title">Good logistics starts with the right conversation.</h3>
+            <p>Tell us what you have in mind. We’ll help shape a clear starting point for your discussion.</p>
+          </div>
 
-              <p className="project-contact-note">For now, use the project demo to explore the customer and owner flows.</p>
+          <div className="conversation-layout">
+            <article className="conversation-intro-card">
+              <div className="conversation-orbit" aria-hidden="true">
+                <span className="conversation-orbit-core">TL</span>
+                <i className="conversation-node conversation-node-one" />
+                <i className="conversation-node conversation-node-two" />
+                <i className="conversation-node conversation-node-three" />
+              </div>
+              <span className="conversation-card-kicker">A MORE FOCUSED FIRST MEETING</span>
+              <h4>Bring the challenge.<br />We’ll map the next step.</h4>
+              <p>Prepare a short brief around your shipment needs, fleet opportunity, or platform questions.</p>
+              <div className="conversation-points">
+                <span><b>01</b> Choose a discussion topic</span>
+                <span><b>02</b> Add a little context</span>
+                <span><b>03</b> Copy your ready-to-share brief</span>
+              </div>
             </article>
 
-            <article className="contact-form-card">
-              <p className="booking-label">Explore the project</p>
-              <h4>Try the customer or truck owner demo flow</h4>
-              <div className="tracking-actions">
-                <button type="button" className="btn btn-primary" onClick={() => goToHash("/truck-map", { flow: "Scheduled booking" })}>Explore truck search</button>
-                <button type="button" className="btn btn-outline" onClick={() => goToHash("/auth", { role: "owner", mode: "signup" })}>Explore owner signup</button>
-              </div>
+            <article className="conversation-builder">
+              <form className="conversation-form" onSubmit={handleConversationBrief}>
+                <fieldset className="conversation-topic-field">
+                  <legend>What would you like to discuss?</legend>
+                  <div className="conversation-topic-grid">
+                    {[
+                      { title: "Shipment planning", detail: "Routes, cargo, and booking needs", icon: "↗" },
+                      { title: "Fleet partnership", detail: "Carrier onboarding and operations", icon: "▤" },
+                      { title: "Platform walkthrough", detail: "Product, workflow, and capabilities", icon: "◎" },
+                    ].map((topic) => (
+                      <button
+                        key={topic.title}
+                        type="button"
+                        className={`conversation-topic${conversationTopic === topic.title ? " is-selected" : ""}`}
+                        aria-pressed={conversationTopic === topic.title}
+                        onClick={() => {
+                          setConversationTopic(topic.title);
+                          setConversationBrief("");
+                          setBriefCopyMessage("");
+                        }}
+                      >
+                        <span className="conversation-topic-icon" aria-hidden="true">{topic.icon}</span>
+                        <span className="conversation-topic-title">{topic.title}</span>
+                        <span className="conversation-topic-detail">{topic.detail}</span>
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <div className="conversation-form-grid">
+                  <label className="field-group">
+                    <span>Your name</span>
+                    <input name="name" type="text" autoComplete="name" placeholder="Name" required />
+                  </label>
+                  <label className="field-group">
+                    <span>Work email</span>
+                    <input name="email" type="email" autoComplete="email" placeholder="you@company.com" required />
+                  </label>
+                </div>
+                <label className="field-group">
+                  <span>Company <small>Optional</small></span>
+                  <input name="company" type="text" autoComplete="organization" placeholder="Company name" />
+                </label>
+                <label className="field-group">
+                  <span>What would make this conversation useful? <small>Optional</small></span>
+                  <textarea name="details" rows="3" placeholder="Share a route, business goal, or question..." />
+                </label>
+
+                <button type="submit" className="btn btn-primary conversation-submit">
+                  Prepare my conversation brief <span aria-hidden="true">→</span>
+                </button>
+                <p className="conversation-privacy-note">Your details stay in this page. This demo prepares a brief; it does not send or store an inquiry.</p>
+              </form>
+
+              {conversationBrief && (
+                <div className="conversation-brief" aria-live="polite">
+                  <div>
+                    <span className="conversation-card-kicker">YOUR BRIEF IS READY</span>
+                    <button type="button" className="conversation-copy-button" onClick={handleCopyConversationBrief}>
+                      Copy brief
+                    </button>
+                  </div>
+                  <pre>{conversationBrief}</pre>
+                  {briefCopyMessage && <p role="status">{briefCopyMessage}</p>}
+                </div>
+              )}
             </article>
           </div>
         </section>
+        </dialog>
+        )}
       </main>
 
       <footer className="site-footer">
@@ -1881,14 +2129,14 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
               <p className="brand-subtitle">{t("Logistics")}</p>
             </div>
           </div>
-          <p>TruckLink is a deployed project demo for exploring truck search, booking requests, and separate customer and owner account flows.</p>
+          <p>Digital workflows for truck discovery, shipment booking, and carrier operations.</p>
         </div>
 
         <div className="footer-links">
           <button type="button" className="footer-link-button" onClick={() => goToSection("tracking")}>{t("Tracking")}</button>
           <button type="button" className="footer-link-button" onClick={() => goToSection("coverage")}>{t("Coverage")}</button>
           <button type="button" className="footer-link-button" onClick={() => goToSection("about")}>{t("About")}</button>
-          <button type="button" className="footer-link-button" onClick={() => goToSection("contact")}>{t("Contact")}</button>
+          <button type="button" className="footer-link-button" onClick={() => setIsConversationOpen(true)}>{t("Contact")}</button>
         </div>
 
         <div className="footer-cta">
@@ -1898,7 +2146,7 @@ function HomePage({ theme, onToggleTheme, t, onToggleLanguage, language, current
           <button type="button" className="btn btn-outline" onClick={() => goToHash("/truck-map", { flow: "Instant booking" })}>
             {t("Book a Shipment")}
           </button>
-          <button type="button" className="btn btn-outline" onClick={() => goToSection("contact")}>
+          <button type="button" className="btn btn-outline" onClick={() => setIsConversationOpen(true)}>
             {t("Talk to Our Team")}
           </button>
         </div>
@@ -1972,10 +2220,10 @@ function MapSelectionPage({ flow, theme, onToggleTheme, language, onLanguageChan
           const location = stateLocations[state.key];
           const marker = L.circleMarker([location.lat, location.lng], {
             radius: 6,
-            weight: 1.5,
-            color: "#0b3f56",
-            fillColor: "#ff9f1c",
-            fillOpacity: 0.82,
+            weight: 2,
+            color: "#ffffff",
+            fillColor: "#188a8a",
+            fillOpacity: 0.92,
           })
             .addTo(mapInstance)
             .bindTooltip(state.label, {
@@ -2013,10 +2261,10 @@ function MapSelectionPage({ flow, theme, onToggleTheme, language, onLanguageChan
       const isActive = key === selectedState;
 
       marker.setStyle({
-        radius: isActive ? 9 : 6,
-        color: isActive ? "#168aad" : "#0b3f56",
-        fillColor: isActive ? "#168aad" : "#ff9f1c",
-        fillOpacity: isActive ? 0.96 : 0.82,
+        radius: isActive ? 10 : 6,
+        color: "#ffffff",
+        fillColor: isActive ? "#f28c28" : "#188a8a",
+        fillOpacity: isActive ? 1 : 0.92,
       });
 
       if (isActive) {
@@ -2042,85 +2290,89 @@ function MapSelectionPage({ flow, theme, onToggleTheme, language, onLanguageChan
   };
 
   return (
-    <div className="page-shell">
+    <div className="page-shell location-page">
       <header className="subpage-topbar">
         <div className="subpage-actions">
-          <button type="button" className="btn btn-outline" onClick={() => goToHash("/")}> 
+          <button type="button" className="btn btn-outline" onClick={() => goToHash("/")}>
             Back to homepage
           </button>
           <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
         </div>
 
         <div className="subpage-copy">
-          <p className="eyebrow">Digital booking map</p>
-          <h1>Select your state and city on the India map</h1>
+          <p className="eyebrow">PLAN YOUR SHIPMENT</p>
+          <h1>Where should we pick up?</h1>
+          <p className="location-page-intro">
+            Choose a pickup location to see truck options for your route.
+          </p>
         </div>
       </header>
 
       <main>
-        <section className="finder-hero">
-          <div className="section-heading">
-            <span className="badge neutral">Smooth map-first booking</span>
-            <h3>Start with the route location before you compare truck options.</h3>
-            <p>
-              Select the state and city where your pickup begins. The next booking page will open with filters preloaded for your chosen region.
-            </p>
-          </div>
-        </section>
+        <ol className="location-steps" aria-label="Booking progress">
+          <li className="is-current" aria-current="step">
+            <span>01</span>
+            <div><strong>Pickup location</strong><small>Choose a state and city</small></div>
+          </li>
+          <li>
+            <span>02</span>
+            <div><strong>Truck options</strong><small>Compare available listings</small></div>
+          </li>
+          <li>
+            <span>03</span>
+            <div><strong>Booking details</strong><small>Review and submit</small></div>
+          </li>
+        </ol>
 
         <section className="map-selection-section">
           <div className="map-selection-grid">
             <article className="india-map-card">
               <div className="map-card-header">
-                <span className="badge warm">India map</span>
-                <h4>Choose your state</h4>
+                <div>
+                  <span className="location-card-eyebrow">PICKUP AREA</span>
+                  <h2>Explore the map</h2>
+                </div>
+                <span className="map-live-label"><i /> Interactive map</span>
               </div>
               <div className="india-map-canvas" ref={mapRef} />
-              <div className="map-hint">
-                <p>Use the map markers to select your starting state. The booking page will open with city and route filters preloaded.</p>
-              </div>
-              <div className="state-chip-row">
-                {visibleStates.map((state) => (
-                  <button
-                    key={state.key}
-                    type="button"
-                    className={`state-chip ${selectedState === state.key ? 'active' : ''}`}
-                    onClick={() => handleStateSelection(state.key)}
-                  >
-                    {state.label}
-                  </button>
-                ))}
+              <div className="map-footer">
+                <span className="map-legend-dot" aria-hidden="true" />
+                <p>Choose a marker or search for a state to get started.</p>
               </div>
             </article>
 
             <aside className="city-panel">
-              <div className="panel-header">
-                <span className="badge neutral">Location details</span>
-                <h4>{selectedState ? `Selected ${selectedState}` : "Pick a state first"}</h4>
+              <div className="location-panel-heading">
+                <div>
+                  <span className="location-card-eyebrow">YOUR PICKUP</span>
+                  <h2>{selectedState ? activeState?.label : "Choose a location"}</h2>
+                </div>
+                <span className={`location-step-number${selectedState ? " is-complete" : ""}`}>
+                  {selectedState ? "✓" : "01"}
+                </span>
               </div>
 
-              <div className="city-info">
-                <p>
-                  {selectedState
-                    ? "Now choose the city where you want to start your booking."
-                    : "Use the map to select a state and reveal the cities available for booking."}
-                </p>
-              </div>
+              <p className="location-panel-copy">
+                {selectedState
+                  ? "Now select the city where your shipment will be picked up."
+                  : "Select a state on the map or use the search below."}
+              </p>
 
               <SearchableSelector
-                label="Search state"
-                placeholder="Type a state or union territory"
+                label="State or union territory"
+                placeholder="Search states and territories"
                 value={selectedState}
                 query={stateQuery}
                 onQueryChange={setStateQuery}
                 options={visibleStates.map((state) => state.key)}
                 onSelect={handleStateSelection}
                 emptyMessage="No states match this search."
+                showResults={stateQuery !== selectedState}
               />
 
               <SearchableSelector
-                label="Search city"
-                placeholder={selectedState ? "Type a city" : "Pick a state first"}
+                label="Pickup city"
+                placeholder={selectedState ? "Search cities" : "Choose a state first"}
                 value={selectedCity}
                 query={cityQuery}
                 onQueryChange={setCityQuery}
@@ -2131,9 +2383,11 @@ function MapSelectionPage({ flow, theme, onToggleTheme, language, onLanguageChan
                     ? "No cities match this search."
                     : "Select a state to search cities."
                 }
+                showResults={Boolean(selectedState) && cityQuery !== selectedCity}
+                disabled={!selectedState}
               />
 
-              <div className="city-grid">
+              <div className={`city-grid${cityQuery !== selectedCity ? " is-searching" : ""}`}>
                 {activeState ? (
                   visibleCities.map((city) => (
                     <button
@@ -2141,12 +2395,16 @@ function MapSelectionPage({ flow, theme, onToggleTheme, language, onLanguageChan
                       type="button"
                       className={`city-chip ${selectedCity === city ? 'active' : ''}`}
                       onClick={() => handleCitySelection(city)}
+                      aria-pressed={selectedCity === city}
                     >
                       {city}
                     </button>
                   ))
                 ) : (
-                  <div className="city-placeholder">Select a state to see cities</div>
+                  <div className="city-placeholder">
+                    <span aria-hidden="true">⌖</span>
+                    <p>Available cities will appear here</p>
+                  </div>
                 )}
               </div>
 
@@ -2158,8 +2416,9 @@ function MapSelectionPage({ flow, theme, onToggleTheme, language, onLanguageChan
                 onClick={handleContinue}
                 disabled={!selectedState || !selectedCity}
               >
-                Continue to truck finder
+                View truck options <span aria-hidden="true">→</span>
               </button>
+              <p className="location-secure-note">You can review your selection before submitting a booking.</p>
             </aside>
           </div>
         </section>
@@ -2180,6 +2439,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const deferredStateQuery = useDeferredValue(stateQuery);
   const deferredCityQuery = useDeferredValue(cityQuery);
   const stateSuggestions = useMemo(
@@ -2204,12 +2464,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
         const response = await truckAPI.searchTrucks(params);
         setListings(response.data);
       } catch (err) {
-        const apiMessage = err.response?.data?.message;
-        const networkMessage =
-          err.code === "ERR_NETWORK"
-            ? "Cannot reach the backend. Check Render URL, CORS, and MongoDB connection."
-            : "";
-        setError(apiMessage || networkMessage || "Failed to load trucks");
+        setError("Unable to load truck options.");
         console.error("Error fetching trucks:", err);
       } finally {
         setLoading(false);
@@ -2217,7 +2472,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
     };
 
     fetchTrucks();
-  }, [selectedService, verifiedOnly, priceLimit]);
+  }, [selectedService, verifiedOnly, priceLimit, retryCount]);
 
   function handleStateSelect(stateKey) {
     setSelectedState(stateKey);
@@ -2274,7 +2529,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
   );
 
   return (
-    <div className="page-shell">
+    <div className="page-shell truck-finder-page">
       <header className="subpage-topbar">
         <div className="subpage-actions">
           <button
@@ -2288,31 +2543,27 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
         </div>
 
         <div className="subpage-copy">
-          <p className="eyebrow">Truck finder</p>
-          <h1>{flow} selected. Now find the right truck for this shipment.</h1>
+          <p className="eyebrow">SHIPMENT PLANNING <span>/</span> {flow.toUpperCase()}</p>
+          <h1>Find the right truck for your shipment</h1>
+          <p className="finder-page-intro">
+            Compare truck options and refine your search to match your cargo and budget.
+          </p>
         </div>
       </header>
 
       <main>
-        <section className="finder-hero">
-          <div className="section-heading">
-            <span className="badge neutral">Dedicated booking page</span>
-            <h3>Explore truck search with sample listings</h3>
-            <p>
-              Listings, routes, prices, ratings, and availability in this project are demonstration data. They do not confirm a real transport provider or offer.
-            </p>
-          </div>
-        </section>
-
         <section className="truck-finder-section truck-finder-section-active">
           <div className="finder-layout">
             <aside className="finder-panel">
               <div className="finder-heading">
-                <h4>Find the right truck</h4>
-                <p>Filter the demo listings by route, location, truck type, and budget.</p>
+                <div>
+                  <span className="finder-panel-kicker">REFINE YOUR SEARCH</span>
+                  <h2>Filters</h2>
+                </div>
+                <span className="finder-filter-icon" aria-hidden="true">≡</span>
               </div>
 
-              <label className="field-group">
+              <label className="field-group finder-field">
                 <span>Route, truck, cargo, or provider</span>
                 <input
                   type="text"
@@ -2322,7 +2573,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                 />
               </label>
 
-              <label className="field-group">
+              <label className="field-group finder-field">
                 <span>Service type</span>
                 <select
                   value={selectedService}
@@ -2344,10 +2595,11 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                 options={stateSuggestions.map((state) => state.key)}
                 onSelect={handleStateSelect}
                 emptyMessage="No states match this search."
+                showResults={stateQuery !== selectedState}
               />
 
               <SearchableSelector
-                label="Search city"
+                label="Pickup city"
                 placeholder={selectedState ? "Try Mumbai, Jaipur, Kochi..." : "Pick a state first"}
                 value={selectedCity}
                 query={cityQuery}
@@ -2359,41 +2611,11 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                     ? "No cities match this search."
                     : "Select a state to unlock city search."
                 }
+                showResults={Boolean(selectedState) && cityQuery !== selectedCity}
+                disabled={!selectedState}
               />
 
-              <div className="map-selector">
-                <span>Select your state and city</span>
-                <div className="map-grid">
-                  {states.map((state) => (
-                    <button
-                      key={state.key}
-                      type="button"
-                      className={`map-pin ${selectedState === state.key ? 'active' : ''}`}
-                      aria-pressed={selectedState === state.key}
-                      onClick={() =>
-                        selectedState === state.key
-                          ? handleStateSelect("")
-                          : handleStateSelect(state.key)
-                      }
-                    >
-                      {state.label}
-                    </button>
-                  ))}
-                </div>
-                {selectedState && (
-                  <div className="selected-state-pill">
-                    <span>{selectedState}</span>
-                    <button type="button" onClick={() => {
-                      setSelectedState("");
-                      setSelectedCity("");
-                    }}>
-                      Clear
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="field-group">
+              <div className="field-group finder-field">
                 <span>Maximum budget</span>
                 <div className="slider-wrap">
                   <input
@@ -2419,16 +2641,40 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                   checked={verifiedOnly}
                   onChange={(event) => setVerifiedOnly(event.target.checked)}
                 />
-                <span>Show listings with the demo verification flag</span>
+                <span>Show listings marked as verified</span>
               </label>
 
-              <div className="filter-note">
-                <strong>{filteredListings.length}</strong>
-              <span>sample listings match</span>
-              </div>
+              <button
+                type="button"
+                className="finder-reset-button"
+                onClick={() => {
+                  setSearchText("");
+                  setSelectedService("All services");
+                  setSelectedState("");
+                  setSelectedCity("");
+                  setStateQuery("");
+                  setCityQuery("");
+                  setPriceLimit(50000);
+                  setVerifiedOnly(false);
+                }}
+              >
+                Reset all filters
+              </button>
             </aside>
 
             <div className="listing-stack">
+              <div className="listing-results-header">
+                <div>
+                  <span className="finder-panel-kicker">MATCHING OPTIONS</span>
+                  <h2>Available trucks</h2>
+                </div>
+                <span className="listing-result-count">
+                  {loading ? "Searching..." : `${filteredListings.length} ${filteredListings.length === 1 ? "option" : "options"}`}
+                </span>
+              </div>
+              <p className="listing-data-note">
+                Listing details and prices are indicative and should be confirmed with the provider before booking.
+              </p>
               {loading ? (
                 <>
                   <LoadingCard />
@@ -2437,8 +2683,15 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                 </>
               ) : error ? (
                 <article className="empty-state">
-                  <h4>Error loading trucks</h4>
-                  <p>{error}</p>
+                  <h4>Ohh, sorry—we couldn't load truck options right now.</h4>
+                  <p>Please try again in a moment. Your search filters will stay in place.</p>
+                  <button
+                    type="button"
+                    className="btn btn-primary small"
+                    onClick={() => setRetryCount((count) => count + 1)}
+                  >
+                    Try again
+                  </button>
                 </article>
               ) : filteredListings.length > 0 ? (
                 filteredListings.map((listing) => (
@@ -2487,7 +2740,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                       <div className="price-block">
                         <span>Estimated fare</span>
                         <strong>{formatPrice(listing.basePrice)}</strong>
-                        <small>Sample price only; real pricing and inclusions are not validated.</small>
+                        <small>Confirm final pricing and inclusions with the provider.</small>
                       </div>
 
                       <div className="rating-block">
@@ -2505,7 +2758,7 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
 
                     <div className="listing-actions">
                       <span className="availability-pill">
-                        {listing.availability ? "Available in demo data" : "Unavailable in demo data"}
+                        {listing.availability ? "Availability to be confirmed" : "Currently unavailable"}
                       </span>
                       <button
                         type="button"
@@ -2519,10 +2772,15 @@ function TruckFinderPage({ flow, theme, onToggleTheme, language, onLanguageChang
                 ))
               ) : (
                 <article className="empty-state">
-                  <h4>No trucks match these filters yet</h4>
+                  <h4>
+                    {selectedState
+                      ? `Ohh, sorry—we couldn't find truck options for ${selectedState} with this search.`
+                      : "Ohh, sorry—we couldn't find any truck options for this search."}
+                  </h4>
                   <p>
-                    Try increasing the budget slider or clearing the search to
-                    see more available options.
+                    {selectedState
+                      ? "Please try another city or adjust your filters to explore other options."
+                      : "Please adjust your filters or search another location and we’ll check again."}
                   </p>
                   <button
                     type="button"
@@ -2830,738 +3088,6 @@ function BookingConfirmationPage({ theme, onToggleTheme, language }) {
   );
 }
 
-function OwnerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, onLogout }) {
-  const [dashboardData, setDashboardData] = useState({
-    trucks: 0,
-    activeBookings: 0,
-    totalEarnings: 0
-  });
-  const [trucks, setTrucks] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showAddTruckForm, setShowAddTruckForm] = useState(false);
-  const [addingTruck, setAddingTruck] = useState(false);
-  const [truckFormMessage, setTruckFormMessage] = useState('');
-  const [truckFormError, setTruckFormError] = useState(false);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [dashboardRes, trucksRes, bookingsRes] = await Promise.all([
-        ownerAPI.getDashboard(),
-        ownerAPI.getTrucks(),
-        ownerAPI.getBookings()
-      ]);
-
-      setDashboardData({
-        trucks: dashboardRes.data.trucks,
-        activeBookings: dashboardRes.data.activeBookings,
-        totalEarnings: dashboardRes.data.totalEarnings
-      });
-      setTrucks(trucksRes.data);
-      setBookings(bookingsRes.data);
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddTruck = async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData);
-    data.basePrice = Number(data.basePrice);
-    data.features = (data.features || '')
-      .split(',')
-      .map((feature) => feature.trim())
-      .filter(Boolean);
-
-    try {
-      setAddingTruck(true);
-      setTruckFormMessage('');
-      setTruckFormError(false);
-      await ownerAPI.addTruck(data);
-      await fetchDashboardData();
-      form.reset();
-      setTruckFormMessage(t('Truck added successfully. You can add another truck below.'));
-    } catch (err) {
-      console.error('Error adding truck:', err);
-      setTruckFormError(true);
-      setTruckFormMessage(err.response?.data?.message || t('Could not add the truck. Check the details and try again.'));
-    } finally {
-      setAddingTruck(false);
-    }
-  };
-
-  const handleUpdateBookingStatus = async (bookingId, newStatus) => {
-    try {
-      await ownerAPI.updateBookingStatus(bookingId, { status: newStatus });
-      fetchDashboardData(); // Refresh data
-    } catch (err) {
-      console.error('Error updating booking:', err);
-      alert('Error updating booking status.');
-    }
-  };
-
-  const handleToggleTruckAvailability = async (truck) => {
-    try {
-      await ownerAPI.updateTruckAvailability(truck._id, !truck.availability);
-      await fetchDashboardData();
-    } catch (err) {
-      window.alert(err.response?.data?.message || 'Could not update truck availability.');
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return '#ff9f1c';
-      case 'confirmed': return '#168aad';
-      case 'in_transit': return '#ff6b35';
-      case 'delivered': return '#52b788';
-      case 'cancelled': return '#dc3545';
-      default: return '#6c757d';
-    }
-  };
-
-  return (
-    <div className="page-shell">
-      <header className="subpage-topbar">
-        <div className="subpage-actions">
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={() => goToHash("/")}
-          >
-            {"\u2190"} {t("Back to homepage")}
-          </button>
-          <button type="button" className="btn btn-outline" onClick={onLogout}>{t("Logout")}</button>
-          <LanguageToggle language={language} onToggle={onToggleLanguage} />
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
-        </div>
-
-        <div className="subpage-copy">
-          <p className="eyebrow">{t("Owner dashboard")}</p>
-          <h1>{t("Manage your fleet and leads")}</h1>
-        </div>
-      </header>
-
-      <main>
-        {/* Dashboard Tabs */}
-        <section className="dashboard-tabs">
-          <div className="tabs-container">
-            <button
-              className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              {t("Overview")}
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'fleet' ? 'active' : ''}`}
-              onClick={() => setActiveTab('fleet')}
-            >
-              {t("Fleet Management")}
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'bookings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('bookings')}
-            >
-              {t("Bookings")}
-            </button>
-          </div>
-        </section>
-
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="dashboard-content">
-            <section className="fleet-header">
-              <h3>{t("Fleet Management")}</h3>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => {
-                  setActiveTab('fleet');
-                  setShowAddTruckForm(true);
-                  setTruckFormMessage('');
-                }}
-              >
-                {t("+ Add New Truck")}
-              </button>
-            </section>
-            <section className="overview-stats">
-              <div className="stat-card-large">
-                <div className="stat-icon">{"\u{1F69A}"}</div>
-                <div className="stat-info">
-                  <h3>{dashboardData.trucks}</h3>
-                  <p>{t("Total Trucks")}</p>
-                </div>
-              </div>
-              <div className="stat-card-large">
-                <div className="stat-icon">{"\u{1F4E6}"}</div>
-                <div className="stat-info">
-                  <h3>{dashboardData.activeBookings}</h3>
-                  <p>{t("Active Bookings")}</p>
-                </div>
-              </div>
-              <div className="stat-card-large">
-                <div className="stat-icon">{"\u{1F4B0}"}</div>
-                <div className="stat-info">
-                  <h3>{"\u20B9"}{dashboardData.totalEarnings.toLocaleString("en-IN")}</h3>
-                  <p>{t("Total Earnings")}</p>
-                </div>
-              </div>
-            </section>
-
-            <section className="recent-activity">
-              <h3>{t("Recent Bookings")}</h3>
-              <div className="activity-list">
-                {bookings.slice(0, 5).map(booking => (
-                  <div key={booking._id} className="activity-item">
-                    <div className="activity-info">
-                      <strong>{booking.truck?.truckNumber}</strong>
-                      <span>{booking.customer?.name}</span>
-                      <small>{booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</small>
-                    </div>
-                    <div className="activity-status">
-                      <span
-                        className="status-badge"
-                        style={{ backgroundColor: getStatusColor(booking.status) }}
-                      >
-                        {booking.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* Fleet Management Tab */}
-        {activeTab === 'fleet' && (
-          <div className="dashboard-content">
-            <section className="fleet-header">
-              <h3>{t("Your Fleet")}</h3>
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  setShowAddTruckForm(!showAddTruckForm);
-                  setTruckFormMessage('');
-                }}
-              >
-                {showAddTruckForm ? t("Cancel") : t("+ Add New Truck")}
-              </button>
-            </section>
-
-            {truckFormMessage && <p className={`form-feedback${truckFormError ? ' is-error' : ''}`} role="status">{truckFormMessage}</p>}
-
-            {showAddTruckForm && (
-              <section className="add-truck-form">
-                <form onSubmit={handleAddTruck}>
-                  <div className="form-grid">
-                    <label className="field-group">
-                      <span>{t("Truck Number")}</span>
-                      <input type="text" name="truckNumber" placeholder="e.g., TRK-001" required />
-                    </label>
-                    <label className="field-group">
-                      <span>{t("Truck Type")}</span>
-                      <select name="truckType" required>
-                        <option value="">{t("Select type")}</option>
-                        <option value="Open truck">{t("Open truck")}</option>
-                        <option value="Container">{t("Container")}</option>
-                        <option value="Cold chain">{t("Cold chain")}</option>
-                        <option value="Express delivery">{t("Express delivery")}</option>
-                      </select>
-                    </label>
-                    <label className="field-group">
-                      <span>{t("Capacity")}</span>
-                      <input type="text" name="capacity" placeholder="e.g., 10 tons" required />
-                    </label>
-                    <label className="field-group">
-                      <span>{t("Route")}</span>
-                      <input type="text" name="route" placeholder="e.g., Delhi to Jaipur" required />
-                    </label>
-                    <label className="field-group">
-                      <span>{t("Base Price (\u20B9)")}</span>
-                      <input type="number" name="basePrice" placeholder="5000" required />
-                    </label>
-                    <label className="field-group">
-                      <span>{t("Features (comma separated)")}</span>
-                      <input type="text" name="features" placeholder="GPS tracking, Refrigerated" />
-                    </label>
-                  </div>
-                  <button type="submit" className="btn btn-primary" disabled={addingTruck}>
-                    {addingTruck ? t("Adding truck...") : t("Add Truck")}
-                  </button>
-                </form>
-              </section>
-            )}
-
-            <section className="fleet-list">
-              <div className="trucks-grid">
-                {trucks.map(truck => (
-                  <div key={truck._id} className="truck-card">
-                    <div className="truck-header">
-                      <h4>{truck.truckNumber}</h4>
-                      <span className={`availability ${truck.availability ? 'available' : 'unavailable'}`}>
-                        {truck.availability ? t("Available") : t("Busy")}
-                      </span>
-                    </div>
-                    <div className="truck-details">
-                      <p><strong>{t("Type")}:</strong> {truck.truckType}</p>
-                      <p><strong>{t("Capacity")}:</strong> {truck.capacity}</p>
-                      <p><strong>{t("Route")}:</strong> {truck.route}</p>
-                      <p><strong>{t("Price")}:</strong> {"\u20B9"}{truck.basePrice}</p>
-                      {truck.features && truck.features.length > 0 && (
-                        <p><strong>{t("Features")}:</strong> {truck.features.join(', ')}</p>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      className="btn btn-outline small"
-                      onClick={() => handleToggleTruckAvailability(truck)}
-                    >
-                      {truck.availability ? 'Mark unavailable' : 'Mark available'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* Bookings Tab */}
-        {activeTab === 'bookings' && (
-          <div className="dashboard-content">
-            <section className="bookings-header">
-              <h3>{t("Booking Management")}</h3>
-            </section>
-
-            <section className="bookings-list">
-              <div className="bookings-table">
-                <div className="table-header">
-                  <span>{t("Customer")}</span>
-                  <span>{t("Truck")}</span>
-                  <span>{t("Route")}</span>
-                  <span>{t("Status")}</span>
-                  <span>{t("Price")}</span>
-                  <span>{t("Actions")}</span>
-                </div>
-                {bookings.map(booking => (
-                  <div key={booking._id} className="table-row">
-                    <div className="customer-info">
-                      <strong>{booking.customer?.name}</strong>
-                      <small>{booking.customer?.email}</small>
-                      {booking.contactPhone && <small>{booking.contactPhone}</small>}
-                    </div>
-                    <div>{booking.truck?.truckNumber}</div>
-                    <small>{booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</small>
-                    <div>
-                      <span
-                        className="status-badge"
-                        style={{ backgroundColor: getStatusColor(booking.status) }}
-                      >
-                        {booking.status}
-                      </span>
-                    </div>
-                    <div>{"\u20B9"}{booking.price}</div>
-                    <div className="booking-actions">
-                      {booking.status === 'pending' && (
-                        <button
-                          className="btn-small btn-confirm"
-                          onClick={() => handleUpdateBookingStatus(booking._id, 'confirmed')}
-                        >
-                          {t("Confirm")}
-                        </button>
-                      )}
-                      {booking.status === 'confirmed' && (
-                        <button
-                          className="btn-small btn-start"
-                          onClick={() => handleUpdateBookingStatus(booking._id, 'in_transit')}
-                        >
-                          {t("Start Trip")}
-                        </button>
-                      )}
-                      {booking.status === 'in_transit' && (
-                        <button
-                          className="btn-small btn-deliver"
-                          onClick={() => handleUpdateBookingStatus(booking._id, 'delivered')}
-                        >
-                          {t("Mark Delivered")}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
-
-function CustomerDashboard({ theme, onToggleTheme, t, onToggleLanguage, language, onLogout }) {
-  const [dashboardData, setDashboardData] = useState({
-    user: { name: '', email: '', phone: '' },
-    stats: { totalBookings: 0, activeBookings: 0, completedBookings: 0, totalSpent: 0 },
-    recentBookings: []
-  });
-  const [allBookings, setAllBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showReviewForm, setShowReviewForm] = useState(null);
-  const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [dashboardRes, bookingsRes] = await Promise.all([
-        customerAPI.getDashboard(),
-        customerAPI.getBookings()
-      ]);
-
-      setDashboardData(dashboardRes.data);
-      setAllBookings(bookingsRes.data);
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdateProfile = async (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData);
-
-    try {
-      await customerAPI.updateProfile(data);
-      fetchDashboardData(); // Refresh data
-      alert('Profile updated successfully!');
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      alert('Error updating profile.');
-    }
-  };
-
-  const handleAddReview = async (bookingId) => {
-    try {
-      await customerAPI.addReview({
-        bookingId,
-        rating: reviewData.rating,
-        comment: reviewData.comment
-      });
-      setShowReviewForm(null);
-      setReviewData({ rating: 5, comment: '' });
-      fetchDashboardData();
-      alert('Review added successfully!');
-    } catch (err) {
-      console.error('Error adding review:', err);
-      alert('Error adding review.');
-    }
-  };
-
-  const handleCancelBooking = async (bookingId) => {
-    if (!confirm('Are you sure you want to cancel this booking?')) return;
-
-    try {
-      await customerAPI.cancelBooking(bookingId);
-      fetchDashboardData();
-      alert('Booking cancelled successfully!');
-    } catch (err) {
-      console.error('Error cancelling booking:', err);
-      alert('Error cancelling booking.');
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return '#ffc107';
-      case 'confirmed': return '#17a2b8';
-      case 'in_transit': return '#007bff';
-      case 'delivered': return '#28a745';
-      case 'cancelled': return '#dc3545';
-      default: return '#6c757d';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'pending': return 'Pending Confirmation';
-      case 'confirmed': return 'Confirmed';
-      case 'in_transit': return 'In Transit';
-      case 'delivered': return 'Delivered';
-      case 'cancelled': return 'Cancelled';
-      default: return status;
-    }
-  };
-
-  return (
-    <div className="page-shell">
-      <header className="subpage-topbar">
-        <div className="subpage-actions">
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={() => goToHash("/")}
-          >
-            {"\u2190"} {t("Back to homepage")}
-          </button>
-          <button type="button" className="btn btn-outline" onClick={onLogout}>{t("Logout")}</button>
-          <LanguageToggle language={language} onToggle={onToggleLanguage} />
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} language={language} />
-        </div>
-
-        <div className="subpage-copy">
-          <p className="eyebrow">{t("Customer dashboard")}</p>
-          <h1>{t("Manage your shipments")}</h1>
-        </div>
-      </header>
-
-      <main>
-        {/* Dashboard Tabs */}
-        <section className="dashboard-tabs">
-          <div className="tabs-container">
-            <button
-              className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              {t("Overview")}
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'bookings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('bookings')}
-            >
-              {t("My Bookings")}
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
-              onClick={() => setActiveTab('profile')}
-            >
-              {t("Profile")}
-            </button>
-          </div>
-        </section>
-
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="dashboard-content">
-            <section className="overview-stats">
-              <div className="stat-card-large">
-                <div className="stat-icon">{"\u{1F4E6}"}</div>
-                <div className="stat-info">
-                  <h3>{dashboardData.stats.totalBookings}</h3>
-                  <p>{t("Total Bookings")}</p>
-                </div>
-              </div>
-              <div className="stat-card-large">
-                <div className="stat-icon">{"\u{1F69A}"}</div>
-                <div className="stat-info">
-                  <h3>{dashboardData.stats.activeBookings}</h3>
-                  <p>{t("Active Shipments")}</p>
-                </div>
-              </div>
-              <div className="stat-card-large">
-                <div className="stat-icon">{"\u{2705}"}</div>
-                <div className="stat-info">
-                  <h3>{dashboardData.stats.completedBookings}</h3>
-                  <p>{t("Completed")}</p>
-                </div>
-              </div>
-              <div className="stat-card-large">
-                <div className="stat-icon">{"\u{1F4B0}"}</div>
-                <div className="stat-info">
-                  <h3>{"\u20B9"}{dashboardData.stats.totalSpent.toLocaleString("en-IN")}</h3>
-                  <p>{t("Total Spent")}</p>
-                </div>
-              </div>
-            </section>
-
-            <section className="recent-activity">
-              <h3>{t("Recent Bookings")}</h3>
-              <div className="activity-list">
-                {dashboardData.recentBookings.map(booking => (
-                  <div key={booking._id} className="activity-item">
-                    <div className="activity-info">
-                      <strong>{booking.truck?.truckNumber} - {booking.truck?.truckType}</strong>
-                      <span><strong>{t("Route")}:</strong> {booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</span>
-                      <small>{"\u20B9"}{booking.price} ? {new Date(booking.createdAt).toLocaleDateString()}</small>
-                    </div>
-                    <div className="activity-status">
-                      <span
-                        className="status-badge"
-                        style={{ backgroundColor: getStatusColor(booking.status) }}
-                      >
-                        {getStatusText(booking.status)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* Bookings Tab */}
-        {activeTab === 'bookings' && (
-          <div className="dashboard-content">
-            <section className="bookings-section">
-              <h3>{t("All My Bookings")}</h3>
-              <div className="bookings-list">
-                {allBookings.map(booking => (
-                  <div key={booking._id} className="booking-card-detailed">
-                    <div className="booking-header">
-                      <div className="booking-title">
-                        <h4>{booking.truck?.truckNumber} - {booking.truck?.truckType}</h4>
-                        <span className="booking-date">
-                          {new Date(booking.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="booking-price">
-                        <strong>{"\u20B9"}{booking.price}</strong>
-                        <span
-                          className="status-badge"
-                          style={{ backgroundColor: getStatusColor(booking.status) }}
-                        >
-                          {getStatusText(booking.status)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="booking-details">
-                      <div className="detail-row">
-                        <span><strong>{t("Route")}:</strong> {booking.pickupLocation} {"\u2192"} {booking.deliveryLocation}</span>
-                        <span><strong>{t("Cargo")}:</strong> {booking.cargoType} ({booking.weight})</span>
-                      </div>
-                      <div className="detail-row">
-                        <span><strong>{t("Pickup Date")}:</strong> {new Date(booking.pickupDate).toLocaleDateString()}</span>
-                        <span><strong>{t("Instructions")}:</strong> {booking.specialInstructions || 'None'}</span>
-                      </div>
-                    </div>
-
-                    <div className="booking-actions">
-                      {booking.status === 'delivered' && !booking.review && (
-                        <button
-                          className="btn-small btn-primary"
-                          onClick={() => setShowReviewForm(booking._id)}
-                        >
-                          {t("Write Review")}
-                        </button>
-                      )}
-                      {['pending', 'confirmed'].includes(booking.status) && (
-                        <button
-                          className="btn-small btn-danger"
-                          onClick={() => handleCancelBooking(booking._id)}
-                        >
-                          {t("Cancel Booking")}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Review Form */}
-                    {showReviewForm === booking._id && (
-                      <div className="review-form">
-                        <h5>{t("Write a Review")}</h5>
-                        <div className="rating-input">
-                          <label>{t("Rating")}:</label>
-                          <select
-                            value={reviewData.rating}
-                            onChange={(e) => setReviewData({...reviewData, rating: parseInt(e.target.value)})}
-                          >
-                            <option value={5}>{"\u2605\u2605\u2605\u2605\u2605"} (5 stars)</option>
-                            <option value={4}>{"\u2605\u2605\u2605\u2605"} (4 stars)</option>
-                            <option value={3}>{"\u2605\u2605\u2605"} (3 stars)</option>
-                            <option value={2}>{"\u2605\u2605"} (2 stars)</option>
-                            <option value={1}>{"\u2605"} (1 star)</option>
-                          </select>
-                        </div>
-                        <textarea
-                          placeholder={t("Share your experience...")}
-                          value={reviewData.comment}
-                          onChange={(e) => setReviewData({...reviewData, comment: e.target.value})}
-                          rows={3}
-                        />
-                        <div className="review-actions">
-                          <button
-                            className="btn-small btn-primary"
-                            onClick={() => handleAddReview(booking._id)}
-                          >
-                            {t("Submit Review")}
-                          </button>
-                          <button
-                            className="btn-small btn-outline"
-                            onClick={() => setShowReviewForm(null)}
-                          >
-                            {t("Cancel")}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* Profile Tab */}
-        {activeTab === 'profile' && (
-          <div className="dashboard-content">
-            <section className="profile-section">
-              <h3>{t("My Profile")}</h3>
-              <form onSubmit={handleUpdateProfile} className="profile-form">
-                <div className="form-grid">
-                  <label className="field-group">
-                    <span>{t("Full Name")}</span>
-                    <input
-                      type="text"
-                      name="name"
-                      defaultValue={dashboardData.user.name}
-                      required
-                    />
-                  </label>
-                  <label className="field-group">
-                    <span>{t("Email Address")}</span>
-                    <input
-                      type="email"
-                      name="email"
-                      value={dashboardData.user.email}
-                      disabled
-                    />
-                  </label>
-                  <label className="field-group">
-                    <span>{t("Phone Number")}</span>
-                    <input
-                      type="tel"
-                      name="phone"
-                      defaultValue={dashboardData.user.phone}
-                    />
-                  </label>
-                </div>
-                <button type="submit" className="btn btn-primary">
-                  {t("Update Profile")}
-                </button>
-              </form>
-            </section>
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
-
 export default function App() {
   const [route, setRoute] = useState(() => getRouteFromHash());
   const [showIntro, setShowIntro] = useState(() => {
@@ -3720,7 +3246,9 @@ export default function App() {
   if (route.path === "/owner-dashboard") {
     return (
       <>
-      <OwnerDashboard theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} onLogout={handleLogout} />
+      <Suspense fallback={<div className="dashboard-loading" role="status">Loading your workspace...</div>}>
+        <OwnerDashboard theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} onLogout={handleLogout} goToHash={goToHash} ThemeToggle={ThemeToggle} LanguageToggle={LanguageToggle} />
+      </Suspense>
       <AssistantWidget pageContext="owner-dashboard" />
       </>
     );
@@ -3729,7 +3257,9 @@ export default function App() {
   if (route.path === "/customer-dashboard") {
     return (
       <>
-      <CustomerDashboard theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} onLogout={handleLogout} />
+      <Suspense fallback={<div className="dashboard-loading" role="status">Loading your workspace...</div>}>
+        <CustomerDashboard theme={theme} onToggleTheme={toggleTheme} t={t} onToggleLanguage={toggleLanguage} language={language} onLogout={handleLogout} goToHash={goToHash} ThemeToggle={ThemeToggle} LanguageToggle={LanguageToggle} />
+      </Suspense>
       <AssistantWidget pageContext="customer-dashboard" />
       </>
     );

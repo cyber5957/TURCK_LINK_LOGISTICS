@@ -3,3 +3,6 @@ dist/
 backend/node_modules/
 .env
 backend/.env
+.vite/
+*.log
+.DS_Store

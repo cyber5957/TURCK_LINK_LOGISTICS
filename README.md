@@ -1,237 +1,201 @@
-# 🚛 TruckLink Logistics
+# TruckLink Logistics
 
-TruckLink Logistics is a full-stack truck booking and logistics marketplace built to help users compare trucks, explore trusted transport providers, and complete bookings through a modern web experience.
+TruckLink is a logistics booking experience for customers and fleet owners. Customers can plan a shipment, review truck options, and track booking status. Fleet owners can list trucks, manage availability, and respond to booking requests.
 
-It includes:
+> **Demo and data note:** some truck listings, prices, ratings, and verification labels in the interface are sample data. They are not proof of a live provider check or a confirmed service. Confirm availability and final terms with the provider before arranging a real shipment.
 
-- 👤 User and owner authentication
-- 🔐 MFA / authenticator app support
-- 🚚 Truck discovery and booking flow
-- ⭐ Review and rating support
-- 📊 Owner and customer dashboards
-- 🌍 Deploy-ready setup for Netlify + Render + MongoDB Atlas
+## At a glance
 
-## ✨ Features
+| Area | What it includes |
+| --- | --- |
+| Customer experience | Pickup planning, truck discovery, booking requests, shipment status, and profile |
+| Fleet owner experience | Fleet listings, availability, booking management, and earnings overview |
+| Accessibility and preferences | Responsive layouts, English/Hindi controls, light/dark themes, reduced-motion support |
+| Application stack | React, Vite, Express, MongoDB/Mongoose |
+| Deployment configuration | Netlify frontend and Render API templates |
 
-- 🔎 Search trucks by route, service type, and availability
-- 🛡️ Verified-provider focused booking flow
-- 🔐 Login, signup, JWT auth, refresh token flow, and MFA
-- 📱 QR code generation for MFA setup
-- 👥 Separate customer and owner dashboard experiences
-- 🧾 Booking confirmation flow with saved draft state
-- 🌐 Hindi / English toggle
-- 🎨 Interactive React frontend with Vite
+## How the booking flow works
 
-## 🧱 Tech Stack
-
-### Frontend
-
-- React
-- Vite
-- Axios
-- Leaflet
-- QRCode
-
-### Backend
-
-- Node.js
-- Express
-- MongoDB + Mongoose
-- JWT
-- bcryptjs
-- Speakeasy
-
-## 📁 Project Structure
-
-```bash
-project-logistics--main/
-├── backend/        # Express API, auth, routes, MongoDB models
-├── src/            # React frontend
-├── public assets   # Video, audio, static files
-├── netlify.toml    # Netlify frontend deployment config
-├── render.yaml     # Render backend deployment config
-└── README.md
+```mermaid
+flowchart LR
+    A[Choose pickup location] --> B[Review truck options]
+    B --> C[Enter shipment details]
+    C --> D[Submit booking request]
+    D --> E[Review status in customer dashboard]
+    F[Fleet owner lists trucks] --> B
+    F --> G[Owner reviews booking requests]
+    G --> E
 ```
 
-## 🚀 Local Development
+## Project layout
 
-### 1. Install frontend dependencies
-
-```bash
-npm install
+```text
+.
+├── backend/
+│   ├── middleware/       # Authentication and access control
+│   ├── models/           # MongoDB models
+│   ├── routes/           # Auth, customer, owner, and logistics APIs
+│   └── server.js         # Express entry point and health endpoint
+├── docs/
+│   └── presentations/    # Stakeholder presentation materials
+├── public/
+│   └── landing-pages/    # Static landing-page resources
+├── src/
+│   ├── assets/media/     # Intro video and audio
+│   ├── pages/            # Route-level page modules, including dashboards
+│   ├── App.jsx           # Route selection and shared experience
+│   ├── api.js            # Frontend API client
+│   ├── styles.css        # Global and responsive styles
+│   └── translations.js   # English and Hindi copy
+├── netlify.toml          # Frontend build and SPA routing
+└── render.yaml           # Backend service template
 ```
 
-### 2. Install backend dependencies
+Presentation material: [TruckLink stakeholder script](docs/presentations/TruckLink_Logistics_Presentation_Script.docx).
 
-```bash
-cd backend
-npm install
-cd ..
-```
+## Performance and mobile experience
 
-### 3. Create environment files
+| Improvement | Result |
+| --- | --- |
+| Dashboard code splitting | Owner/customer dashboard code loads only when one of those routes is opened |
+| Phone and reduced-motion intro | The large intro video is not mounted on narrow screens, reduced-motion settings, or data-saving connections |
+| Deferred audio | Intro audio is not preloaded and plays only after the visitor enables sound |
+| Touch and safe-area support | Mobile controls have comfortable touch targets and the floating assistant respects device safe areas |
+| Responsive content | Navigation, booking steps, maps, cards, and dashboards adapt to narrow screens |
 
-Copy:
+## Requirements
 
-- `.env.example` → `.env`
-- `backend/.env.example` → `backend/.env`
+- Node.js 20 LTS or newer
+- npm
+- MongoDB for API-backed accounts, fleet, and booking data
 
-### 4. Start the frontend
+The frontend can be explored without the API, but account actions and live dashboard/truck data require a running backend connected to MongoDB.
 
-```bash
-npm run dev
-```
+## Run locally
 
-### 5. Start the backend
+1. Install frontend dependencies from the repository root:
 
-```bash
-npm run api
-```
+   ```bash
+   npm install
+   ```
 
-### 6. Local URLs
+2. Install backend dependencies:
 
-- Frontend: `http://127.0.0.1:5173`
-- Backend: `http://127.0.0.1:5000/api`
+   ```bash
+   npm --prefix backend install
+   ```
 
-## 🔑 Environment Variables
+3. Create local environment files:
 
-### Frontend `.env`
+   ```bash
+   # macOS/Linux
+   cp .env.example .env
+   cp backend/.env.example backend/.env
+   ```
 
-```bash
-VITE_API_BASE_URL=http://localhost:5000/api
-VITE_GOOGLE_MAPS_API_KEY=
-```
+   On Windows PowerShell:
 
-### Backend `backend/.env`
+   ```powershell
+   Copy-Item .env.example .env
+   Copy-Item backend/.env.example backend/.env
+   ```
 
-```bash
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/trucklink
-JWT_SECRET=replace_with_a_long_random_secret
-ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-```
+4. Set `MONGODB_URI` and a unique `JWT_SECRET` in `backend/.env`. The API will not start until MongoDB is configured and reachable.
 
-## 🌐 Deployment Target
+5. Start the frontend:
 
-This project is prepared for:
+   ```bash
+   npm run dev
+   ```
 
-- ▲ Netlify for the frontend
-- ⚙️ Render for the backend API
-- 🍃 MongoDB Atlas for the database
+6. In a second terminal, start the backend:
 
-## ▲ Netlify Deployment
+   ```bash
+   npm run api
+   ```
 
-The frontend uses `netlify.toml`.
+   To browse the frontend without live API data, start only the frontend. API-dependent features will remain unavailable.
 
-### Build settings
+| Service | Local address |
+| --- | --- |
+| Frontend | <http://127.0.0.1:5173> |
+| Backend health | <http://127.0.0.1:5000/health> |
+| Backend API | <http://127.0.0.1:5000/api> |
 
-```bash
-Build command: npm run build
-Publish directory: dist
-```
+## Configuration
 
-### Netlify environment variables
+### Frontend (`.env`)
 
-```bash
-VITE_API_BASE_URL=https://your-render-service.onrender.com/api
-VITE_GOOGLE_MAPS_API_KEY=your_key_if_needed
-```
+| Variable | Purpose | Example |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | Base URL for the backend API | `http://localhost:5000/api` |
 
-## ⚙️ Render Deployment
+The interactive map currently uses Leaflet and OpenStreetMap tiles and does not need a maps API key. Vite exposes variables prefixed with `VITE_` to browser code; never put credentials or private server secrets in frontend variables.
 
-The backend uses `render.yaml`.
+### Backend (`backend/.env`)
 
-If you create the backend service manually on Render, use:
+| Variable | Purpose |
+| --- | --- |
+| `PORT` | API listening port (local default: `5000`) |
+| `NODE_ENV` | `development` locally; `production` when deployed |
+| `MONGODB_URI` | MongoDB connection string |
+| `JWT_SECRET` | Long, unique secret used to sign access tokens |
+| `ALLOWED_ORIGINS` | Comma-separated exact frontend origins permitted by CORS |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Optional outbound email configuration |
 
-```bash
-Root directory: backend
-Build command: npm install
-Start command: npm start
-```
+Keep `.env` files out of version control. Use a secret manager or the hosting provider's environment settings for production values. Do not use placeholder secrets, expose database credentials, or open database network access to the entire internet.
 
-### Render environment variables
+## Useful commands
 
-```bash
-NODE_ENV=production
-PORT=5000
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<db>?retryWrites=true&w=majority
-JWT_SECRET=use_a_long_random_secret
-ALLOWED_ORIGINS=https://your-netlify-site.netlify.app
-```
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Create the production frontend build in `dist/` |
+| `npm run preview` | Preview the production frontend build locally |
+| `npm run api` | Start the backend in development mode |
+| `npm --prefix backend run seed` | Seed the configured database with sample truck data |
 
-If `ALLOWED_ORIGINS` is missing, the backend now temporarily allows all origins in production and logs a warning so the frontend can still connect while you finish setup.
+## Deployment
 
-## 🍃 MongoDB Atlas Setup
+### Frontend on Netlify
 
-Create a MongoDB Atlas cluster and use its connection string for `MONGODB_URI`.
+The repository includes `netlify.toml`.
 
-Example:
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Set `VITE_API_BASE_URL` to the deployed backend's `/api` URL.
+- Configure the exact public frontend origin in the backend's `ALLOWED_ORIGINS`.
 
-```bash
-mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/trucklink?retryWrites=true&w=majority
-```
+### Backend on Render
 
-For initial deployment, Atlas Network Access can temporarily allow:
+The repository includes `render.yaml`.
 
-```bash
-0.0.0.0/0
-```
+- Root directory: `backend`
+- Build command: `npm install`
+- Start command: `npm start`
+- Health check path: `/health`
+- Configure `MONGODB_URI`, `JWT_SECRET`, `ALLOWED_ORIGINS`, and any email settings as Render environment variables.
 
-You can tighten it later if needed.
+Use an exact, comma-separated CORS origin list (for example, your Netlify site origin). Production cross-origin requests are blocked when `ALLOWED_ORIGINS` is missing. Never use a wildcard CORS policy or expose MongoDB to `0.0.0.0/0` as a quick fix.
 
-## Seed Production Data
+### Recommended release checks
 
-If `/api/trucks` loads but returns an empty array, your Atlas database is connected but has no truck data yet.
+1. Confirm MongoDB connectivity and a successful `/health` response.
+2. Confirm the frontend API URL and backend CORS origin match the deployed domains.
+3. Verify customer and owner registration/login, including authenticator setup.
+4. Verify truck search, booking requests, status updates, and dashboard access.
+5. Check the main flows at a narrow mobile viewport as well as desktop.
 
-Run this from the `backend` folder with the same `MONGODB_URI` used on Render:
+## Security and product boundaries
 
-```bash
-npm run seed
-```
+- Customer and fleet-owner accounts use role-based access.
+- The backend implements password hashing and authenticator-based MFA flows; do not describe this as an independent security audit or a guarantee of safety.
+- Displayed sample listings and verification indicators are illustrative unless independently confirmed.
+- A submitted booking request is not a confirmed shipment until the relevant status is updated.
 
-## ✅ Recommended Deployment Order
+## Current state
 
-1. Create the MongoDB Atlas database.
-2. Deploy the backend to Render.
-3. Copy the Render backend URL.
-4. Deploy the frontend to Netlify.
-5. Set `VITE_API_BASE_URL` in Netlify.
-6. Update `ALLOWED_ORIGINS` in Render with your final Netlify domain.
-7. Test login, signup, MFA, truck search, and booking flow in production.
-
-## 🛡️ Production Notes
-
-- The frontend API URL is controlled by `VITE_API_BASE_URL`.
-- The backend CORS allowlist is controlled by `ALLOWED_ORIGINS`.
-- Refresh cookies use production-safe settings automatically.
-- Render health checks can use `/health`.
-- Do not use local MongoDB credentials in production.
-
-## Deployment Troubleshooting
-
-If the truck finder shows `Error loading trucks` after deployment, check these in order:
-
-1. Open your Render backend URL at `/health`.
-2. Confirm Netlify `VITE_API_BASE_URL` points to `https://your-render-service.onrender.com/api`.
-3. Confirm Render `ALLOWED_ORIGINS` includes your exact Netlify domain without a trailing path.
-4. Confirm Render `MONGODB_URI` points to MongoDB Atlas and Atlas Network Access allows Render to connect.
-5. Confirm Atlas actually contains truck records; if not, run `npm run seed` inside `backend`.
-
-## 📌 Current Status
-
-- ✅ Frontend production build is working
-- ✅ Backend startup is working
-- ✅ Deploy config files are included
-- ✅ MFA QR code flow is implemented
-- ✅ Login-before-booking flow is implemented
-
-## 🤝 Next Step
-
-Push this repo to GitHub, then connect:
-
-- Netlify → GitHub repo
-- Render → GitHub repo
-- MongoDB Atlas → Render backend
-
-Then you’ll be ready to deploy step by step.
+- Production frontend build: `npm run build`
+- Browser app routes use hash-based navigation.
+- TruckMate is a page-aware, rule-based guide; it does not call a generative AI service.
+- The backend is a separate service and must be configured for live API-backed features.
